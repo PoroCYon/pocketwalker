@@ -1,14 +1,5 @@
-bin/
-obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
-
-.vs
 .idea
-x64
-*.user
 
-build
-release
-x64
+roms
+
+cmake-build-debug
