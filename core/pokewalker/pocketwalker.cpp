@@ -1,8 +1,5 @@
 #include "pocketwalker.h"
 
-#include "peripherals/bma150/bma150.h"
-#include "peripherals/m95512/m95512.h"
-
 PocketWalker::PocketWalker(RomBuffer rom_buffer, EepromBuffer save_buffer)
 {
     this->soc = std::make_shared<H838606>(rom_buffer);

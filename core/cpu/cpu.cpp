@@ -29,30 +29,35 @@ uint8_t CPU::Cycle()
         reg.PC = 0x358;
     }
 
-    uint16_t exec_pc = this->reg.PC;
-    const Instruction* instruction = instruction_set.Decode(*this);
+    if (!sleep)
+    {
+        uint16_t exec_pc = this->reg.PC;
+        const Instruction* instruction = instruction_set.Decode(*this);
 
-    instruction->execute(*this);
+        instruction->execute(*this);
 
-    if (!instruction->branch_absolute)
-        this->reg.PC += instruction->size;
+        if (!instruction->branch_absolute)
+            this->reg.PC += instruction->size;
 
-    if (print_instructions)
-        std::println("0x{:04X} {}", exec_pc, instruction->name);
+        if (print_instructions)
+            std::println("0x{:04X} {}", exec_pc, instruction->name);
 
-    return instruction->cycles.Count();
+        return instruction->cycles.Count();
+    }
+
+    return 1; // TODO investigate proper sleep modes and ticking for other components
 }
 
 void CPU::Push16(uint16_t value)
 {
-    *this->reg.SP -= 2;
-    this->mem->Write16(*this->reg.SP, value);
+    *reg.SP -= 2;
+    mem->Write16(*reg.SP, value);
 }
 
 uint16_t CPU::Pop16()
 {
-    const uint16_t value = this->mem->Read16(*this->reg.SP);
-    *this->reg.SP += 2;
+    const uint16_t value = mem->Read16(*reg.SP);
+    *reg.SP += 2;
 
     return value;
 }

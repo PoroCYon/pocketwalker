@@ -14,6 +14,7 @@ H838606::H838606(RomBuffer rom_buffer)
     this->memory = std::make_shared<MemoryBus>(rom, ram, io);
     this->cpu = std::make_shared<CPU>(this->memory);
     this->ssu = std::make_shared<SSU>(this->memory);
+    this->timer_b1 = std::make_shared<TimerB1>(this->memory);
 
     this->ssu->RegisterIOHandlers(io);
 }
@@ -25,5 +26,6 @@ void H838606::Run()
         const uint8_t cycles = this->cpu->Cycle();
 
         this->ssu->Cycle(cycles);
+        this->timer_b1->Cycle(cycles);
     }
 }

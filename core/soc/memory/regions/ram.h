@@ -5,7 +5,7 @@
 
 #define RAM_SIZE 0x800
 #define RAM_START 0xF780
-#define RAM_END 0xFF80
+#define RAM_END 0xFF7F
 
 class RAM : public MemoryInterface
 {

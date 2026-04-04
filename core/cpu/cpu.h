@@ -48,6 +48,7 @@ public:
     uint16_t gh() const { return mem->Read16(reg.PC + 6); }
 
     Registers reg = {};
+    bool sleep = false;
 
     std::shared_ptr<MemoryInterface> mem;
 };

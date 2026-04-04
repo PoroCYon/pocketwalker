@@ -5,7 +5,7 @@
 
 #include "core/soc/defines.h"
 
-std::array<uint16_t, 8> clock_rates = {
+static std::array<uint16_t, 8> clock_rates = {
     256,
     128,
     64,
