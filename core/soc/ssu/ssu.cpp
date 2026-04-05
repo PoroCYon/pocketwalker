@@ -18,12 +18,9 @@ static std::array<uint16_t, 8> clock_rates = {
 
 SSU::SSU(const std::shared_ptr<MemoryInterface>& memory, const std::shared_ptr<Interrupts>& interrupts)
 {
-    mem = memory;
+    this->mem = memory;
     this->interrupts = interrupts;
-
-    SSMR = reinterpret_cast<SSMR_t*>(memory->Ptr8(SSU_ADDR_SSMR));
 }
-
 
 void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
 {
@@ -63,6 +60,9 @@ void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
             SSSR.TDRE = true;
     });
 
+    IO_HANDLER_READ_UNION(SSU_ADDR_SSMR, SSMR);
+    IO_HANDLER_WRITE_UNION(SSU_ADDR_SSMR, SSMR);
+
     IO_HANDLER_READ_UNION(SSU_ADDR_SSER, SSER);
     IO_HANDLER_WRITE_UNION(SSU_ADDR_SSER, SSER);
 
@@ -94,9 +94,9 @@ void SSU::RegisterPeripheral(const std::shared_ptr<Peripheral>& peripheral, uint
 void SSU::Cycle(uint8_t cycles)
 {
     ssu_cycles += cycles;
-    if (ssu_cycles >= clock_rates[SSMR->CKS])
+    if (ssu_cycles >= clock_rates[SSMR.CKS])
     {
-        ssu_cycles -= clock_rates[SSMR->CKS];
+        ssu_cycles -= clock_rates[SSMR.CKS];
 
         const auto peripheral = ActivePeripheral();
         if (peripheral == nullptr)

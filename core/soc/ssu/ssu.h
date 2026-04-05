@@ -20,13 +20,18 @@
 
 #define SSU_ADDR_PMRB 0xFFCA
 
-struct SSMR_t
+union SSMR_t
 {
-    uint8_t CKS : 3;
-    uint8_t  : 2;
-    uint8_t CPHS : 1;
-    uint8_t CPOS : 1;
-    uint8_t MLS : 1;
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t CKS : 3;
+        uint8_t  : 2;
+        uint8_t CPHS : 1;
+        uint8_t CPOS : 1;
+        uint8_t MLS : 1;
+    };
 };
 
 union SSSR_t
@@ -125,7 +130,7 @@ public:
     PDRB_t PDRB = {};
     PMRB_t PMRB = {};
 
-    SSMR_t* SSMR = nullptr;
+    SSMR_t SSMR = {};
     SSER_t SSER = {};
     SSSR_t SSSR = {};
     uint8_t SSRDR = 0;
@@ -134,8 +139,8 @@ public:
 private:
     std::shared_ptr<Peripheral> ActivePeripheral();
 
-    std::shared_ptr<MemoryInterface> mem = nullptr;
     std::shared_ptr<Interrupts> interrupts = nullptr;
+    std::shared_ptr<MemoryInterface> mem = nullptr;
 
     std::vector<SSUPeripheralEntry> peripherals;
 

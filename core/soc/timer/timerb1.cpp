@@ -32,6 +32,8 @@ void TimerB1::Cycle(uint8_t cycles)
     if (!TMB1.CNT)
         return;
 
+    // TODO add clock stop enable
+
     timer_b1_cycles += cycles;
     if (timer_b1_cycles >= clock_rates[TMB1.CKS])
     {

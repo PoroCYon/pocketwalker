@@ -6,6 +6,9 @@
 
 #define INTERRUPT_ADDR_RTCFLG 0xF067
 
+#define INTERRUPT_ADDR_TIERW 0xF0F2
+#define INTERRUPT_ADDR_TSRW 0xF0F3
+
 #define INTERRUPT_ADDR_IEGR 0xFFF2
 #define INTERRUPT_ADDR_IENR1 0xFFF3
 #define INTERRUPT_ADDR_IENR2 0xFFF4
@@ -20,6 +23,7 @@
 #define INTERRUPT_VECTOR_ADDR_RTC_SEC 0x0032
 
 #define INTERRUPT_VECTOR_ADDR_TIMER_B1 0x0042
+#define INTERRUPT_VECTOR_ADDR_TIMER_W 0x0046
 
 union IENR1_t
 {
@@ -97,6 +101,37 @@ union RTCFLG_t
     };
 };
 
+union TIERW_t
+{
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t IMIEA : 1;
+        uint8_t IMIEB : 1;
+        uint8_t IMIEC : 1;
+        uint8_t IMIED : 1;
+        uint8_t : 3;
+        uint8_t OVIE : 1;
+    };
+};
+
+union TSRW_t
+{
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t IMFA : 1;
+        uint8_t IMFB : 1;
+        uint8_t IMFC : 1;
+        uint8_t IMFD : 1;
+        uint8_t : 3;
+        uint8_t OVF : 1;
+    };
+};
+
+
 class Interrupts
 {
 public:
@@ -108,5 +143,9 @@ public:
     IENR2_t IENR2 = {};
     IRR1_t IRR1 = {};
     IRR2_t IRR2 = {};
+
     RTCFLG_t RTCFLG = {};
+
+    TIERW_t TIERW = {};
+    TSRW_t TSRW = {};
 };

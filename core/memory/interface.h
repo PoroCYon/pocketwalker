@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "core/utils/h8300h_ptr.h"
+
 class MemoryInterface
 {
 public:
@@ -15,9 +17,9 @@ public:
     void Write16(uint16_t address, uint16_t value);
     void Write32(uint16_t address, uint32_t value);
 
-    uint8_t* Ptr8(uint16_t address);
-    uint16_t* Ptr16(uint16_t address);
-    uint32_t* Ptr32(uint16_t address);
+    h8300h_ptr<uint8_t> Ptr8(uint16_t address);
+    h8300h_ptr<uint16_t> Ptr16(uint16_t address);
+    h8300h_ptr<uint32_t> Ptr32(uint16_t address);
 
 
 protected:

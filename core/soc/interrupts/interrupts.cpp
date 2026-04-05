@@ -19,6 +19,12 @@ void Interrupts::RegisterIOHandlers(const std::shared_ptr<IO>& io)
 
     IO_HANDLER_READ_UNION(INTERRUPT_ADDR_RTCFLG, RTCFLG);
     IO_HANDLER_WRITE_UNION(INTERRUPT_ADDR_RTCFLG, RTCFLG);
+    
+    IO_HANDLER_READ_UNION(INTERRUPT_ADDR_TIERW, TIERW);
+    IO_HANDLER_WRITE_UNION(INTERRUPT_ADDR_TIERW, TIERW);
+    
+    IO_HANDLER_READ_UNION(INTERRUPT_ADDR_TSRW, TSRW);
+    IO_HANDLER_WRITE_UNION(INTERRUPT_ADDR_TSRW, TSRW);
 }
 
 void Interrupts::Cycle(const std::shared_ptr<CPU>& cpu)
@@ -45,5 +51,13 @@ void Interrupts::Cycle(const std::shared_ptr<CPU>& cpu)
     else if (IENR2.IENTB1 && IRR2.IRRTB1)
     {
         cpu->Interrupt(INTERRUPT_VECTOR_ADDR_TIMER_B1);
+    }
+    else if (TIERW.OVIE && TSRW.OVF)
+    {
+        cpu->Interrupt(INTERRUPT_VECTOR_ADDR_TIMER_W);
+    }
+    else if (TIERW.IMIEA && TSRW.IMFA)
+    {
+        cpu->Interrupt(INTERRUPT_VECTOR_ADDR_TIMER_W);
     }
 }

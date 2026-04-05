@@ -6,6 +6,7 @@
 #include "rtc/rtc.h"
 #include "ssu/ssu.h"
 #include "timer/timerb1.h"
+#include "timer/timerw.h"
 
 class H838606
 {
@@ -22,6 +23,7 @@ public:
     std::shared_ptr<SSU> ssu = nullptr;
 
     std::shared_ptr<TimerB1> timer_b1 = nullptr;
+    std::shared_ptr<TimerW> timer_w = nullptr;
 
     std::shared_ptr<RTC> rtc = nullptr;
 };
