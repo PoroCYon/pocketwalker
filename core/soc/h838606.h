@@ -1,4 +1,5 @@
 #pragma once
+#include "adc/adc.h"
 #include "core/cpu/cpu.h"
 #include "core/utils/event_handler.h"
 #include "interrupts/interrupts.h"
@@ -27,4 +28,5 @@ public:
     std::shared_ptr<TimerW> timer_w = nullptr;
 
     std::shared_ptr<RTC> rtc = nullptr;
+    std::shared_ptr<ADC> adc = nullptr;
 };

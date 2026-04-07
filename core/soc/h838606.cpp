@@ -32,6 +32,9 @@ H838606::H838606(RomBuffer rom_buffer)
 
     rtc = std::make_shared<RTC>(interrupts);
     rtc->RegisterIOHandlers(io);
+
+    adc = std::make_shared<ADC>(memory);
+    adc->RegisterIOHandlers(io);
 }
 
 uint8_t H838606::Cycle()
@@ -39,9 +42,12 @@ uint8_t H838606::Cycle()
     const uint8_t cycles = cpu->Cycle();
     interrupts->Cycle(cpu);
     ssu->Cycle(cycles);
+
+    // TODO clock stop enables for all components
     timer_b1->Cycle(cycles);
     timer_w->Cycle(cycles);
     rtc->Cycle(cycles);
+    adc->Cycle(cycles);
 
     return cycles;
 }

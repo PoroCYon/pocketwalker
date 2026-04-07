@@ -45,6 +45,11 @@ void PocketWalker::Stop()
     this->is_running = false;
 }
 
+void PocketWalker::SetWatts(uint16_t value)
+{
+    this->soc->memory->Write16(PW_ADDR_WATTS, value);
+}
+
 void PocketWalker::OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback)
 {
     this->buzzer->OnSamplePushed += callback;

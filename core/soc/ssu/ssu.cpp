@@ -75,9 +75,15 @@ void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
     {
         PDRB.VALUE = value;
 
+        // TODO proper usage of PFCR reg to determine irq0/1 sources
         if (PMRB.IRQ0 && PDRB.PB0)
         {
             interrupts->IRR1.IRRI0 = true;
+        }
+
+        if (PMRB.IRQ1 && PDRB.PB1)
+        {
+            interrupts->IRR1.IRRI1 = true;
         }
     });
 

@@ -10,6 +10,8 @@
 #include "peripherals/m95512/m95512.h"
 #include "peripherals/ssd1854/ssd1854.h"
 
+#define PW_ADDR_WATTS 0xF78E
+
 enum class ButtonType
 {
     CENTER = 1 << 0,
@@ -24,6 +26,8 @@ public:
 
     void Start();
     void Stop();
+
+    void SetWatts(uint16_t value);
 
     void OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback);
 

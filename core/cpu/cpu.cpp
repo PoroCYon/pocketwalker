@@ -12,29 +12,16 @@ CPU::CPU(const std::shared_ptr<MemoryInterface>& memory)
     this->mem = memory;
 
     this->reg.PC = this->mem->Read16(CPU_VECTOR_RESET_ADDR);
-    reg.flags.I = true;
 }
 
 bool print_instructions = false;
 
 uint8_t CPU::Cycle()
 {
-    // temporarily skip factory tests until all peripherals have been implemented
-    if (reg.PC == 0x0336) [[unlikely]]
-    {
-        reg.PC += 4;
-    }
-
-    // temporarily skip battery check until adc has been implemented
-    if (reg.PC == 0x346) [[unlikely]]
-    {
-        reg.PC = 0x358;
-    }
-
     // temporarily skip accelerometer sleep until interrupt has been implemented
     if (reg.PC == 0x7700) [[unlikely]]
     {
-        reg.PC += 2;
+        //reg.PC += 2;
     }
 
     // add initial watts
