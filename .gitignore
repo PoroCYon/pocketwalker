@@ -3,6 +3,8 @@
 
 # Build
 cmake-build-debug
+build
+release
 
 # Personal
 roms
