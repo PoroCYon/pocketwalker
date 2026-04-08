@@ -5,12 +5,12 @@
 
 #include "core/soc/defines.h"
 
-PocketWalker::PocketWalker(RomBuffer rom_buffer, EepromBuffer save_buffer)
+PocketWalker::PocketWalker(RomBuffer rom_buffer)
 {
     this->soc = std::make_shared<H838606>(rom_buffer);
 
     this->bma150 = std::make_shared<BMA150>();
-    this->m95512 = std::make_shared<M95512>(save_buffer);
+    this->m95512 = std::make_shared<M95512>();
     this->ssd1854 = std::make_shared<SSD1854>();
     this->buzzer = std::make_shared<Buzzer>(this->soc->timer_w);
 
@@ -82,4 +82,14 @@ void PocketWalker::ReleaseButton(ButtonType button) const
 {
     const uint8_t current = soc->memory->Read8(SSU_ADDR_PDRB);
     soc->memory->Write8(SSU_ADDR_PDRB, current & ~static_cast<uint8_t>(button));
+}
+
+EepromBuffer PocketWalker::GetEepromBuffer() const
+{
+    return m95512->eeprom;
+}
+
+void PocketWalker::SetEepromBuffer(const EepromBuffer& buffer) const
+{
+    m95512->eeprom = buffer;
 }

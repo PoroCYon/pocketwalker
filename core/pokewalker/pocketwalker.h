@@ -22,7 +22,7 @@ enum class ButtonType
 class PocketWalker
 {
 public:
-    PocketWalker(RomBuffer rom_buffer, EepromBuffer save_buffer);
+    PocketWalker(RomBuffer rom_buffer);
 
     void Start();
     void Stop();
@@ -38,6 +38,9 @@ public:
 
     void PressButton(ButtonType button) const;
     void ReleaseButton(ButtonType button) const;
+
+    EepromBuffer GetEepromBuffer() const;
+    void SetEepromBuffer(const EepromBuffer& buffer) const;
 
 private:
     std::shared_ptr<H838606> soc = nullptr;

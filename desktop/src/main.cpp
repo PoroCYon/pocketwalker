@@ -68,19 +68,22 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    PocketWalker emulator(rom_buffer);
+
     auto save_path = arguments.get<std::string>("save");
-    EepromBuffer save_buffer = {};
     if (std::filesystem::exists(save_path))
     {
-        std::ifstream eeprom_file(save_path, std::ios::binary);
-        eeprom_file.read(reinterpret_cast<char*>(save_buffer.data()), save_buffer.size());
-        eeprom_file.close();
+        EepromBuffer save_buffer = {};
+        std::ifstream save_file(save_path, std::ios::binary);
+        save_file.read(reinterpret_cast<char*>(save_buffer.data()), save_buffer.size());
+        save_file.close();
+
+        emulator.SetEepromBuffer(save_buffer);
     }
 
     QApplication app(argc, argv);
     app.setStyle("Fusion");
 
-    PocketWalker emulator(rom_buffer, save_buffer);
 
     QtAudioSystem audio;
     emulator.OnSamplePushed([&](BuzzerInformation info)
@@ -113,6 +116,11 @@ int main(int argc, char* argv[])
 
     tcp_thread.quit();
     tcp_thread.wait();
+
+    EepromBuffer save_buffer = emulator.GetEepromBuffer();
+    std::ofstream save_file(save_path, std::ios::binary);
+    save_file.write(reinterpret_cast<const char*>(save_buffer.data()), save_buffer.size());
+    save_file.close();
 
     return 0;
 }

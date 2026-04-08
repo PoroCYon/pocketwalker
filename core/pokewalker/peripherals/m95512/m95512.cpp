@@ -2,11 +2,6 @@
 
 #include <print>
 
-M95512::M95512(EepromBuffer eeprom_buffer)
-{
-    eeprom = eeprom_buffer;
-}
-
 void M95512::Receive(uint8_t data)
 {
     switch (state)

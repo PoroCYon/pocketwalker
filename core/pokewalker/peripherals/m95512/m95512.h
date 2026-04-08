@@ -27,13 +27,13 @@ class M95512 : public Peripheral
 {
 
 public:
-    explicit M95512(EepromBuffer eeprom_buffer);
     void Receive(uint8_t data) override;
     uint8_t Transmit() override;
     void Reset() override;
 
-private:
     EepromBuffer eeprom = {};
+
+private:
 
     M95512State state = M95512State::IDLE;
     bool is_reading = false;
