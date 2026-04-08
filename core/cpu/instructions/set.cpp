@@ -560,6 +560,19 @@ InstructionSet::InstructionSet() :
                     cpu.reg.MovFlags(*rd);
                 }
             });
+
+            table.Add(0x11, 0x0B, {
+                "SHAR.L ERd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());
+                    cpu.reg.flags.C = *erd & 1;
+                    *erd = (*erd >> 1) | (*erd & NEGATIVE_MASK(32));
+                    cpu.reg.MovFlags(*erd);
+                }
+            });
         });
 
 
@@ -1889,6 +1902,20 @@ InstructionSet::InstructionSet() :
                     uint32_t* erd = cpu.reg.Reg32(cpu.bL());
 
                     cpu.reg.Sub(*erd, imm);
+                }
+            });
+
+            table.Add(0x7A, 0x06, {
+                "AND.L #xx:32, ERd",
+                6,
+                {3, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint32_t imm = (cpu.cd() << 16) | cpu.ef();
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());
+
+                    *erd &= imm;
+                    cpu.reg.MovFlags(*erd);
                 }
             });
         });
