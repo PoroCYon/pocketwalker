@@ -1,30 +1,13 @@
 <div align="center">
 
-PocketWalker - An H8/300H Emulator Tailored for the PokeWalker
-------------------------------------------
-[![Release](https://img.shields.io/github/release/h4lfheart/PocketWalker)]()
-[![Downloads](https://img.shields.io/github/downloads/h4lfheart/PocketWalker/total?color=green)]()
+# PocketWalker
+### An H8/300H Emulator Tailored for the PokéWalker
+
+[![Release](https://img.shields.io/github/release/h4lfheart/pocketwalker?color=green)]()
+[![Downloads](https://img.shields.io/github/downloads/h4lfheart/pocketwalker/total?color=yellowgreen)]()
+
+<img alt="PocketWalker" src="./.github/images/cover.gif" />
 
 </div>
 
-![image](.github/cover.png)
-
-## Fully Implemented Features
-- CPU
-- SSU
-- RTC
-- SCI3 ([melonDS-IR](https://github.com/Ceravia/melonDS-IR))
-  - Peer Play
-- Peripherals
-  - LCD (w/ Sleep Mode)
-  - Eeprom
-  - 3-Button Input
-  - Beeper Audio
-
-## Partially Implemented Features
-- ADC
-- Accelerometer
-
-## Planned Features
-- Step Tracking (Accelerometer)
-  - Gifts
+---

@@ -1,14 +1,9 @@
-bin/
-obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
-
-.vs
+# CLion
 .idea
-x64
-*.user
 
-build
-release
-x64
+# Build
+cmake-build-debug
+
+# Personal
+roms
+docs
