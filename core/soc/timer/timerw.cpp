@@ -38,8 +38,6 @@ void TimerW::Cycle(uint8_t cycles)
     if (!TMRW.CTS)
         return;
 
-    // TODO add clock stop enable
-
     timer_w_cycles += cycles;
     if (timer_w_cycles >= clock_rates[TCRW.CKS])
     {

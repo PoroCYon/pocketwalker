@@ -31,16 +31,20 @@ public:
 
     void OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback);
 
+    void OnTransmitIR(const EventHandlerCallback<uint8_t>& callback);
+    void ReceiveIR(uint8_t data);
+
+    SSD1854DrawInfo* GetDrawInfo();
+
     void PressButton(ButtonType button) const;
     void ReleaseButton(ButtonType button) const;
-
-    std::shared_ptr<SSD1854> ssd1854 = nullptr;
 
 private:
     std::shared_ptr<H838606> soc = nullptr;
 
     std::shared_ptr<BMA150> bma150 = nullptr;
     std::shared_ptr<M95512> m95512 = nullptr;
+    std::shared_ptr<SSD1854> ssd1854 = nullptr;
     std::shared_ptr<Buzzer> buzzer = nullptr;
 
     bool is_running = false;;

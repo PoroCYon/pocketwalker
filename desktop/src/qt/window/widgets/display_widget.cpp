@@ -57,7 +57,9 @@ void DisplayWidget::paintGL()
 
     uint8_t pixels[SCREEN_W * SCREEN_H * 4];
 
-    if (emulator.ssd1854->power_save_mode)
+    SSD1854DrawInfo* draw_info = emulator.GetDrawInfo();
+
+    if (draw_info->power_save_mode)
     {
         if (!was_last_frame_power_save)
         {
@@ -73,13 +75,13 @@ void DisplayWidget::paintGL()
     {
         for (int y = 0; y < SCREEN_H; y++)
         {
-            const int page = y / 8 + emulator.ssd1854->page_offset;
+            const int page = y / 8 + draw_info->page_offset;
             const int page_offset = page * SSD1854_TOTAL_COLUMNS * SSD1854_COLUMN_SIZE;
             const int bit_offset = y % 8;
             for (int x = 0; x < SCREEN_W; x++)
             {
                 const int base = SSD1854_COLUMN_SIZE * x + page_offset;
-                const uint8_t palette_index = (((emulator.ssd1854->vram.Read8(base) >> bit_offset) & 1) << 1) | ((emulator.ssd1854->vram.Read8(base + 1) >> bit_offset) & 1);
+                const uint8_t palette_index = (((draw_info->vram.Read8(base) >> bit_offset) & 1) << 1) | ((draw_info->vram.Read8(base + 1) >> bit_offset) & 1);
                 const int idx = (y * SCREEN_W + x) * 4;
                 pixels[idx + 0] = LCD_PALETTE[palette_index];
                 pixels[idx + 1] = LCD_PALETTE[palette_index];

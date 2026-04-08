@@ -23,6 +23,9 @@ H838606::H838606(RomBuffer rom_buffer)
 
     ssu = std::make_shared<SSU>(memory, interrupts);
     ssu->RegisterIOHandlers(io);
+    
+    sci3 = std::make_shared<SCI3>();
+    sci3->RegisterIOHandlers(io);
 
     timer_b1 = std::make_shared<TimerB1>(interrupts);
     timer_b1->RegisterIOHandlers(io);
@@ -50,6 +53,9 @@ uint8_t H838606::Cycle()
 
     if (CKSTPR2.SSUCKSTP)
         ssu->Cycle(cycles);
+
+    if (CKSTPR1.S3CKSTP)
+        sci3->Cycle(cycles);
 
     if (CKSTPR1.TB1CKSTP)
         timer_b1->Cycle(cycles);

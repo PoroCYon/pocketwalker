@@ -57,6 +57,21 @@ void PocketWalker::OnSamplePushed(const EventHandlerCallback<BuzzerInformation>&
     this->buzzer->OnSamplePushed += callback;
 }
 
+void PocketWalker::OnTransmitIR(const EventHandlerCallback<uint8_t>& callback)
+{
+    this->soc->sci3->OnTransmitIR(callback);
+}
+
+void PocketWalker::ReceiveIR(const uint8_t data)
+{
+    this->soc->sci3->ReceiveIR(data);
+}
+
+SSD1854DrawInfo* PocketWalker::GetDrawInfo()
+{
+    return &this->ssd1854->draw_info;
+}
+
 void PocketWalker::PressButton(ButtonType button) const
 {
     const uint8_t current = soc->memory->Read8(SSU_ADDR_PDRB);

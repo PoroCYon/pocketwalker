@@ -44,7 +44,8 @@ void M95512::Receive(uint8_t data)
     case M95512State::MEMORY:
         if (!is_reading)
         {
-            eeprom[(high_addr << 8 | low_addr) + offset] = data;
+            const uint32_t address = ((high_addr << 8 | low_addr) + offset) & 0xFFFF;
+            eeprom[address] = data;
             offset++;
             offset %= 128;
         }
@@ -60,8 +61,10 @@ uint8_t M95512::Transmit()
         {
             if (is_reading)
             {
-                const uint8_t value = eeprom[(high_addr << 8 | low_addr) + offset];
+                uint32_t address = ((high_addr << 8 | low_addr) + offset) & 0xFFFF;
+                const uint8_t value = eeprom[address];
                 offset++;
+
                 return value;
             }
 

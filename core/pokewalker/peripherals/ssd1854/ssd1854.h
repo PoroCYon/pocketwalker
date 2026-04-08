@@ -32,6 +32,14 @@ enum class SSD1854State
     SET_PAGE_OFFSET
 };
 
+struct SSD1854DrawInfo
+{
+    Memory<0x3200> vram = {};
+    uint8_t page_offset = 0;
+    uint8_t contrast = 20;
+    bool power_save_mode = false;
+};
+
 class SSD1854 : public Peripheral
 {
 public:
@@ -40,10 +48,7 @@ public:
     void Receive(uint8_t data) override;
     uint8_t Transmit() override;
 
-    Memory<0x3200> vram = {};
-    uint8_t page_offset = 0;
-    uint8_t contrast = 20;
-    bool power_save_mode = false;
+    SSD1854DrawInfo draw_info = {};
 
 private:
     void HandleCommand(uint8_t data);

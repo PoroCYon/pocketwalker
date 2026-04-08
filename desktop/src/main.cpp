@@ -2,11 +2,13 @@
 #include <print>
 #include <thread>
 #include <QApplication>
+#include <QThread>
 
 #include "argparse/argparse.hpp"
 #include "core/pokewalker/pocketwalker.h"
 #include "qt/window/qt_window_system.h"
 #include "qt/audio/qt_audio_system.h"
+#include "qt/network/qt_network_system.h"
 
 int main(int argc, char* argv[])
 {
@@ -19,6 +21,24 @@ int main(int argc, char* argv[])
     arguments.add_argument("save")
              .help("The path to your PokeWalker save file.")
              .default_value("pocketwalker.sav");
+
+    arguments.add_argument("--server")
+             .help("Run as TCP server instead of client.")
+             .flag();
+
+    arguments.add_argument("--ip")
+             .help("IP address to connect to (client mode).")
+             .default_value(std::string("127.0.0.1"));
+
+    arguments.add_argument("--port")
+             .help("TCP port for server or client.")
+             .default_value(8081)
+             .scan<'i', int>();
+
+    arguments.add_argument("--packet-timeout")
+             .help("Packet accumulator timeout in milliseconds.")
+             .default_value(5)
+             .scan<'i', int>();
 
     try
     {
@@ -68,6 +88,19 @@ int main(int argc, char* argv[])
         audio.PushSample(info);
     });
 
+    const bool server_mode = arguments.is_used("--server");
+    const QString ip = QString::fromStdString(arguments.get<std::string>("--ip"));
+    const auto tcp_port = static_cast<quint16>(arguments.get<int>("--port"));
+    const int packet_timeout = arguments.get<int>("--packet-timeout");
+
+    QThread tcp_thread;
+    QtNetworkSystem network(emulator, server_mode, ip, tcp_port, packet_timeout);
+    network.moveToThread(&tcp_thread);
+
+    QObject::connect(&tcp_thread, &QThread::started, &network, &QtNetworkSystem::start);
+
+    tcp_thread.start();
+
     QtWindowSystem window(emulator);
     window.show();
 
@@ -75,7 +108,11 @@ int main(int argc, char* argv[])
 
     app.exec();
 
+    emulator.Stop();
     emulator_thread.join();
+
+    tcp_thread.quit();
+    tcp_thread.wait();
 
     return 0;
 }

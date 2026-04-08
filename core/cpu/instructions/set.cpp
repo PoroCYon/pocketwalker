@@ -58,17 +58,34 @@ InstructionSet::InstructionSet() :
         }
     });
 
-    root.Add(0x0, 0xA, {
-        "INC.B Rd",
-        2,
-        {1, 0, 0, 0, 0, 0},
-        [](CPU& cpu)
+    root.AddSubtable(0x0, 0xA,
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.a()); },
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.bH()); },
+        [](InstructionTable& table)
         {
-            uint8_t* rd = cpu.reg.Reg8(cpu.bL());
+            table.Add(0x0A, 0x00, {
+                "INC.B Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint8_t* rd = cpu.reg.Reg8(cpu.bL());
+                    *rd = cpu.reg.Inc(*rd, 1);
+                }
+            });
 
-            *rd = cpu.reg.Inc(*rd, 1);
-        }
-    });
+            table.Add(0x0A, {0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF}, {
+                "ADD.L ERs, ERd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint32_t* ers = cpu.reg.Reg32(cpu.bH());
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());
+                    *erd = cpu.reg.Add(*erd, *ers);
+                }
+            });
+        });
 
     root.Add(0x0, 0xC, {
         "MOV.B Rs, Rd",
@@ -391,6 +408,7 @@ InstructionSet::InstructionSet() :
                         }
                     });
                 });
+
             table.AddSubtable(0x01, 0xD,
                 [](const CPU& cpu) { return static_cast<uint32_t>(cpu.ab()) << 4 | cpu.cH(); },
                 [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
@@ -414,6 +432,27 @@ InstructionSet::InstructionSet() :
 
                             cpu.reg.flags.Z = quotient == 0;
                             cpu.reg.flags.N = quotient < 0;
+                        }
+                    });
+                });
+
+
+            table.AddSubtable(0x01, 0xF,
+                [](const CPU& cpu) { return static_cast<uint32_t>(cpu.ab()) << 4 | cpu.cH(); },
+                [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
+                [](InstructionTable& table)
+                {
+                    table.Add(0x01F06, 0x5, {
+                        "XOR.L ERs, ERd",
+                        4,
+                        {3, 0, 0, 0, 0, 0},
+                        [](CPU& cpu)
+                        {
+                            const uint32_t* ers = cpu.reg.Reg32(cpu.dH());
+                            uint32_t* erd = cpu.reg.Reg32(cpu.dL());
+
+                            *erd ^= *ers;
+                            cpu.reg.MovFlags(*erd);
                         }
                     });
                 });
@@ -538,6 +577,21 @@ InstructionSet::InstructionSet() :
                     uint8_t* rd = cpu.reg.Reg8(cpu.bL());
 
                     const uint8_t msb = (*rd >> 7) & 1;
+                    *rd = (*rd << 1) | msb;
+                    cpu.reg.flags.C = msb;
+                    cpu.reg.MovFlags(*rd);
+                }
+            });
+
+            table.Add(0x12, 0x09, {
+                "ROTL.W Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+                    const uint8_t msb = (*rd >> 15) & 1;
                     *rd = (*rd << 1) | msb;
                     cpu.reg.flags.C = msb;
                     cpu.reg.MovFlags(*rd);
@@ -1343,15 +1397,13 @@ InstructionSet::InstructionSet() :
             uint16_t* rd = cpu.reg.Reg16(cpu.bL());
             const uint8_t imm = cpu.bH();
 
-            const uint8_t value = cpu.mem->Read8(*rd);
-
             if (cpu.reg.flags.C)
             {
-                cpu.mem->Write8(*rd, value | (1 << imm));
+                *rd |= (1 << imm);
             }
             else
             {
-                cpu.mem->Write8(*rd, value & ~(1 << imm));
+                *rd &= ~(1 << imm);
             }
         }
     });

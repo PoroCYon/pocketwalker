@@ -18,14 +18,6 @@ bool print_instructions = false;
 
 uint8_t CPU::Cycle()
 {
-    // add initial watts
-    if (reg.PC == 0x9A4E) [[unlikely]]
-    {
-        if (mem->Read16(0xF78E) == 0)
-        {
-            mem->Write16(0xF78E, 500);
-        }
-    }
 
     if (!sleep)
     {
