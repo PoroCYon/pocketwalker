@@ -1,5 +1,4 @@
 #include "qt_window_system.h"
-#include "widgets/display_widget.h"
 #include <fstream>
 #include <QMenuBar>
 #include <QTimer>
@@ -7,12 +6,23 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QStyleFactory>
+#include <QStyleHints>
+
+
+#include "desktop/src/qt/dialog/general_settings_dialog.h"
+#include "desktop/src/qt/settings/app_settings.h"
 
 QtWindowSystem::QtWindowSystem(QWidget* parent)
     : QMainWindow(parent)
 {
     setWindowTitle("PocketWalker");
     menuBar()->setNativeMenuBar(true);
+#if WIN32
+    if (QApplication::style()->name() == "windows11")
+        setStyleSheet("QMenuBar::item { padding: 4px 8px; }");
+#endif
+
 
     auto* file_menu = menuBar()->addMenu("File");
     auto* open_action = file_menu->addAction("Open ROM");
@@ -35,7 +45,14 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     connect(file_menu->addAction("Exit"), &QAction::triggered, qApp, &QApplication::quit);
 
     auto* settings_menu = menuBar()->addMenu("Settings");
-    settings_menu->addAction("General");
+    connect(settings_menu->addAction("General"), &QAction::triggered, this, [this]
+    {
+        auto* dlg = new GeneralSettingsDialog(this);
+        connect(dlg, &GeneralSettingsDialog::themeChanged, this, &QtWindowSystem::applyTheme);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+    });
+
     settings_menu->addAction("Emulation");
     settings_menu->addAction("Controls");
     settings_menu->addAction("IR");
@@ -47,6 +64,12 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     render_timer = new QTimer(this);
     connect(render_timer, &QTimer::timeout, display, QOverload<>::of(&QWidget::update));
     render_timer->start(16);
+
+    applyTheme();
+
+    const auto& general = AppSettings::instance.general;
+    if (general.boot_on_launch && !general.default_rom.empty())
+        launchEmulator(general.default_rom);
 }
 
 QtWindowSystem::~QtWindowSystem()
@@ -72,10 +95,8 @@ void QtWindowSystem::openRecentROM(const QString& path)
         QMessageBox::warning(this, "File Not Found",
             QString("Could not find:\n%1\n\nIt will be removed from the recent list.").arg(path));
 
-        QSettings settings("PocketWalker", "PocketWalker");
-        QStringList recent = settings.value("recentROMs").toStringList();
-        recent.removeAll(path);
-        settings.setValue("recentROMs", recent);
+        auto& recent = AppSettings::instance.general.recent_roms;
+        std::erase(recent, path.toStdString());
         updateRecentROMsMenu();
         return;
     }
@@ -85,49 +106,80 @@ void QtWindowSystem::openRecentROM(const QString& path)
 
 void QtWindowSystem::importSave()
 {
-    if (!emulator || save_path.empty())
-    {
-        QMessageBox::warning(this, "No ROM Loaded", "Please load a ROM before importing a save.");
-        return;
-    }
-
     const QString path = QFileDialog::getOpenFileName(
         this, "Import Save", QString(), "Save Files (*.sav);;All Files (*)");
 
     if (path.isEmpty())
         return;
 
-    std::ifstream source_save_file(path.toStdString(), std::ios::binary);
-    const std::string current_rom = active_rom_path;
+    const auto result = QMessageBox::warning(
+        this, "Import Save",
+        "Importing a new save file will overwrite your existing save. Are you sure you want to continue?",
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (result != QMessageBox::Yes)
+        return;
+
+    const std::string rom_path = context->romPath();
+    const std::string save_path = context->savePath();
 
     shutdownEmulator();
 
+    std::ifstream src(path.toStdString(), std::ios::binary);
     std::ofstream dst(save_path, std::ios::binary);
-    dst << source_save_file.rdbuf();
-    dst.close();
+    dst << src.rdbuf();
 
-    launchEmulator(current_rom);
+    launchEmulator(rom_path);
 }
 
 void QtWindowSystem::resetEmulator()
 {
-    if (active_rom_path.empty())
+    if (!context)
         return;
 
-    launchEmulator(active_rom_path);
+    launchEmulator(context->romPath());
 }
 
-void QtWindowSystem::addToRecentROMs(const QString& path)
+void QtWindowSystem::launchEmulator(const std::string& rom_path)
 {
-    QSettings settings("PocketWalker", "PocketWalker");
-    QStringList recent = settings.value("recentROMs").toStringList();
+    shutdownEmulator();
+    addToRecentROMs(rom_path);
 
-    recent.removeAll(path);
-    recent.prepend(path);
-    while (recent.size() > MAX_RECENT_ROMS)
-        recent.removeLast();
+    context = std::make_unique<EmulatorContext>(rom_path, this);
+    display->setEmulator(&context->emulator());
+    setEmulatorActionsEnabled(true);
+    render_timer->start(16);
 
-    settings.setValue("recentROMs", recent);
+    const std::string filename = rom_path.substr(rom_path.find_last_of("/\\") + 1);
+    setWindowTitle(QString("PocketWalker - %1").arg(QString::fromStdString(filename)));
+}
+
+void QtWindowSystem::shutdownEmulator()
+{
+    if (!context)
+        return;
+
+    render_timer->stop();
+    display->setEmulator(nullptr);
+    context.reset();
+    setEmulatorActionsEnabled(false);
+    setWindowTitle("PocketWalker");
+}
+
+void QtWindowSystem::setEmulatorActionsEnabled(bool enabled)
+{
+    import_save_action->setEnabled(enabled);
+    reset_action->setEnabled(enabled);
+}
+
+void QtWindowSystem::addToRecentROMs(const std::string& path)
+{
+    auto& recent = AppSettings::instance.general.recent_roms;
+    std::erase(recent, path);
+    recent.insert(recent.begin(), path);
+    if (recent.size() > MAX_RECENT_ROMS)
+        recent.resize(MAX_RECENT_ROMS);
+
     updateRecentROMsMenu();
 }
 
@@ -135,128 +187,62 @@ void QtWindowSystem::updateRecentROMsMenu()
 {
     recent_roms_menu->clear();
 
-    const QSettings settings("PocketWalker", "PocketWalker");
-    const QStringList recent = settings.value("recentROMs").toStringList();
+    const auto& recent = AppSettings::instance.general.recent_roms;
 
-    if (recent.isEmpty())
+    if (recent.empty())
     {
         recent_roms_menu->addAction("(empty)")->setEnabled(false);
         return;
     }
 
-    for (const QString& path : recent)
+    for (const std::string& path : recent)
     {
-        const QAction* action = recent_roms_menu->addAction(path);
-        connect(action, &QAction::triggered, this, [this, path]
+        const QString qpath = QString::fromStdString(path);
+        const QAction* action = recent_roms_menu->addAction(qpath);
+        connect(action, &QAction::triggered, this, [this, qpath]
         {
-            openRecentROM(path);
+            openRecentROM(qpath);
         });
     }
 
     recent_roms_menu->addSeparator();
     connect(recent_roms_menu->addAction("Clear Recent ROMs"), &QAction::triggered, this, [this]
     {
-        QSettings settings("PocketWalker", "PocketWalker");
-        settings.remove("recentROMs");
+        AppSettings::instance.general.recent_roms.clear();
         updateRecentROMsMenu();
     });
 }
 
-void QtWindowSystem::launchEmulator(const std::string& rom_path)
+void QtWindowSystem::applyTheme()
 {
-    shutdownEmulator();
-    addToRecentROMs(QString::fromStdString(rom_path));
-    active_rom_path = rom_path;
-
-    RomBuffer rom_buffer = {};
-    std::ifstream rom_file(rom_path, std::ios::binary);
-    rom_file.read(reinterpret_cast<char*>(rom_buffer.data()), 0xC000);
-
-    emulator.emplace(PocketWalker(rom_buffer));
-
-    save_path = rom_path.substr(0, rom_path.find_last_of('.')) + ".sav";
-    if (std::filesystem::exists(save_path))
+    switch (AppSettings::instance.general.theme)
     {
-        EepromBuffer save_buf = {};
-        std::ifstream save_file(save_path, std::ios::binary);
-        save_file.read(reinterpret_cast<char*>(save_buf.data()), save_buf.size());
-        emulator->SetEepromBuffer(save_buf);
+    case GeneralSettings::AppTheme::Light:
+        qApp->styleHints()->setColorScheme(Qt::ColorScheme::Light);
+        break;
+    case GeneralSettings::AppTheme::Dark:
+        qApp->styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+        break;
+    case GeneralSettings::AppTheme::System:
+        qApp->styleHints()->setColorScheme(Qt::ColorScheme::Unknown);
+        break;
     }
-
-    audio = std::make_unique<QtAudioSystem>();
-    emulator->OnSamplePushed([this](BuzzerInformation info)
-    {
-        audio->PushSample(info);
-    });
-
-    network_thread = std::make_unique<QThread>();
-    network = std::make_unique<QtNetworkSystem>(*emulator, false, "127.0.0.1", 8081, 5);
-    network->moveToThread(network_thread.get());
-    connect(network_thread.get(), &QThread::started, network.get(), &QtNetworkSystem::start);
-    network_thread->start();
-
-    display->setEmulator(&emulator.value());
-    import_save_action->setEnabled(true);
-    reset_action->setEnabled(true);
-
-    render_timer->start(16);
-
-    setWindowTitle(QString("PocketWalker - %1")
-        .arg(QString::fromStdString(rom_path.substr(rom_path.find_last_of("/\\") + 1))));
-
-    emulator_thread = std::make_unique<std::thread>([this] { emulator->Start(); });
-}
-
-void QtWindowSystem::shutdownEmulator()
-{
-    if (!emulator)
-        return;
-
-    render_timer->stop();
-
-    emulator->Stop();
-    if (emulator_thread && emulator_thread->joinable())
-        emulator_thread->join();
-    emulator_thread.reset();
-
-    if (network_thread)
-    {
-        network_thread->quit();
-        network_thread->wait();
-    }
-    network.reset();
-    network_thread.reset();
-    audio.reset();
-
-    if (!save_path.empty())
-    {
-        const EepromBuffer buf = emulator->GetEepromBuffer();
-        std::ofstream f(save_path, std::ios::binary);
-        f.write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    }
-
-    emulator.reset();
-    display->setEmulator(nullptr);
-    import_save_action->setEnabled(false);
-    reset_action->setEnabled(false);
-
-    setWindowTitle("PocketWalker");
 }
 
 void QtWindowSystem::keyPressEvent(QKeyEvent* event)
 {
-    if (!emulator)
+    if (!context)
     {
         QMainWindow::keyPressEvent(event);
         return;
     }
     switch (event->key())
     {
-    case Qt::Key_Down: emulator->PressButton(ButtonType::CENTER);
+    case Qt::Key_Down: context->emulator().PressButton(ButtonType::CENTER);
         break;
-    case Qt::Key_Left: emulator->PressButton(ButtonType::LEFT);
+    case Qt::Key_Left: context->emulator().PressButton(ButtonType::LEFT);
         break;
-    case Qt::Key_Right: emulator->PressButton(ButtonType::RIGHT);
+    case Qt::Key_Right: context->emulator().PressButton(ButtonType::RIGHT);
         break;
     default: QMainWindow::keyPressEvent(event);
         break;
@@ -265,18 +251,18 @@ void QtWindowSystem::keyPressEvent(QKeyEvent* event)
 
 void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
 {
-    if (!emulator)
+    if (!context)
     {
         QMainWindow::keyReleaseEvent(event);
         return;
     }
     switch (event->key())
     {
-    case Qt::Key_Down: emulator->ReleaseButton(ButtonType::CENTER);
+    case Qt::Key_Down: context->emulator().ReleaseButton(ButtonType::CENTER);
         break;
-    case Qt::Key_Left: emulator->ReleaseButton(ButtonType::LEFT);
+    case Qt::Key_Left: context->emulator().ReleaseButton(ButtonType::LEFT);
         break;
-    case Qt::Key_Right: emulator->ReleaseButton(ButtonType::RIGHT);
+    case Qt::Key_Right: context->emulator().ReleaseButton(ButtonType::RIGHT);
         break;
     default: QMainWindow::keyReleaseEvent(event);
         break;

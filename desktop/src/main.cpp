@@ -1,13 +1,20 @@
 #include <QApplication>
+#include <QStyleFactory>
+
+#include "qt/settings/app_settings.h"
 #include "qt/window/qt_window_system.h"
 
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    app.setStyle("Fusion");
+
+    AppSettings::instance.load();
 
     QtWindowSystem window;
     window.show();
 
-    return app.exec();
+    const int result = app.exec();
+
+    AppSettings::instance.save();
+    return result;
 }

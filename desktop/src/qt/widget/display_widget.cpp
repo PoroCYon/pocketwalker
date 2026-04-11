@@ -94,11 +94,11 @@ void DisplayWidget::paintGL()
             for (int x = 0; x < SCREEN_W; x++)
             {
                 const int base = SSD1854_COLUMN_SIZE * x + page_offset;
-                const uint8_t idx = (((splash[base]     >> bit) & 1) << 1) |
-                                     ((splash[base + 1] >> bit) & 1);
+                const uint8_t idx = (((splash[base] >> bit) & 1) << 1) |
+                    ((splash[base + 1] >> bit) & 1);
                 const int i = (y * SCREEN_W + x) * 4;
-                pixels[i] = pixels[i+1] = pixels[i+2] = LCD_PALETTE[idx];
-                pixels[i+3] = 255;
+                pixels[i] = pixels[i + 1] = pixels[i + 2] = LCD_PALETTE[idx];
+                pixels[i + 3] = 255;
             }
         }
         drawPixels(pixels);
@@ -128,10 +128,11 @@ void DisplayWidget::paintGL()
             for (int x = 0; x < SCREEN_W; x++)
             {
                 const int base = SSD1854_COLUMN_SIZE * x + page_offset;
-                const uint8_t palette_index = (((draw_info->vram.Read8(base) >> bit_offset) & 1) << 1) | ((draw_info->vram.Read8(base + 1) >> bit_offset) & 1);
+                const uint8_t palette_index = (((draw_info->vram.Read8(base) >> bit_offset) & 1) << 1) | ((draw_info->
+                    vram.Read8(base + 1) >> bit_offset) & 1);
                 const int idx = (y * SCREEN_W + x) * 4;
-                pixels[idx] = pixels[idx+1] = pixels[idx+2] = LCD_PALETTE[palette_index];
-                pixels[idx+3] = 255;
+                pixels[idx] = pixels[idx + 1] = pixels[idx + 2] = LCD_PALETTE[palette_index];
+                pixels[idx + 3] = 255;
             }
         }
         drawPixels(pixels);

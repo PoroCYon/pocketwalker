@@ -3,12 +3,14 @@ project(pocketwalker)
 
 set(CMAKE_CXX_STANDARD 26)
 add_subdirectory(${CMAKE_SOURCE_DIR}/../core core)
-add_subdirectory(${CMAKE_SOURCE_DIR}/../external/argparse argparse)
 
 file(GLOB_RECURSE SOURCES src/*.cpp src/*.h)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Multimedia)
 find_package(OpenGL REQUIRED)
+
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../external/json nlohmann)
 
 if(WIN32)
     set(ICON_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/app.rc")
@@ -39,4 +41,5 @@ target_link_libraries(pocketwalker PRIVATE
         Qt6::OpenGLWidgets
         Qt6::Multimedia
         OpenGL::GL
+        nlohmann_json::nlohmann_json
 )
