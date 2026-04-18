@@ -3,7 +3,9 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QDialogButtonBox>
+#include <QLabel>
 
+#include "general_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 #include "desktop/src/qt/settings/types/ir_settings.h"
 
@@ -35,10 +37,13 @@ IRSettingsDialog::IRSettingsDialog(QWidget* parent)
     auto* connection_group = new QGroupBox("Network", this);
     connection_group->setLayout(connection_form);
 
-    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    auto* note_text = new QLabel("Note: These settings require an emulation reset to take effect.");
+    connection_form->addRow(note_text);
 
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(connection_group);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     layout->addWidget(buttons);
 
     connect(buttons, &QDialogButtonBox::accepted, this, &IRSettingsDialog::apply);

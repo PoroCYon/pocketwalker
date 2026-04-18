@@ -46,13 +46,9 @@
 - Emulation Speed Multiplier
 - RTC Sync Mode
 
-#### Control Settings
-- Keybinds for Main Buttons
-- Speedup Button with Hold/Toggle
-
 #### IR Settings
-- IR Communication Mode (TCP, UDP, Serial)
-- 
+- IR Communication Modes (TCP, UDP, Serial)
+
 ## Building From Source
 
 To build pocketwalker from source, first clone the repository and all of its submodules.

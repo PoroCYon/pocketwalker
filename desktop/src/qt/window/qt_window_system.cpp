@@ -10,6 +10,7 @@
 #include <QStyleHints>
 
 
+#include "desktop/src/qt/dialog/control_settings_dialog.h"
 #include "desktop/src/qt/dialog/general_settings_dialog.h"
 #include "desktop/src/qt/dialog/ir_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
@@ -84,7 +85,14 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     });
 
     settings_menu->addAction("Emulation");
-    settings_menu->addAction("Controls");
+
+    auto* controls_settings_action = settings_menu->addAction("Controls");
+    connect(controls_settings_action, &QAction::triggered, this, [this]
+    {
+        auto* dlg = new ControlSettingsDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+    });
 
     auto ir_settings_action = settings_menu->addAction("IR");
     connect(ir_settings_action, &QAction::triggered, this, [this]
@@ -93,6 +101,9 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
     });
+
+
+    auto* about_menu = menuBar()->addMenu("About");
 
 
     display = new DisplayWidget(this);
@@ -279,24 +290,15 @@ void QtWindowSystem::keyPressEvent(QKeyEvent* event)
         QMainWindow::keyPressEvent(event);
         return;
     }
-    switch (event->key())
-    {
-    case Qt::Key_Down:
-        context->emulator().PressButton(ButtonType::CENTER);
-        break;
-    case Qt::Key_Left:
-        context->emulator().PressButton(ButtonType::LEFT);
-        break;
-    case Qt::Key_Right:
-        context->emulator().PressButton(ButtonType::RIGHT);
-        break;
-    case Qt::Key_Tab:
-        context->emulator().UseFastMode(true);
-        break;
-    default:
-        QMainWindow::keyPressEvent(event);
-        break;
-    }
+
+    const auto& controls = AppSettings::instance.controls;
+    const int key = event->key();
+
+    if (key == controls.key_left) context->emulator().PressButton(ButtonType::LEFT);
+    else if (key == controls.key_right) context->emulator().PressButton(ButtonType::RIGHT);
+    else if (key == controls.key_center) context->emulator().PressButton(ButtonType::CENTER);
+    else if (key == controls.key_speedup) context->emulator().UseFastMode(true);
+    else QMainWindow::keyPressEvent(event);
 }
 
 void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
@@ -306,24 +308,15 @@ void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
         QMainWindow::keyReleaseEvent(event);
         return;
     }
-    switch (event->key())
-    {
-    case Qt::Key_Down:
-        context->emulator().ReleaseButton(ButtonType::CENTER);
-        break;
-    case Qt::Key_Left:
-        context->emulator().ReleaseButton(ButtonType::LEFT);
-        break;
-    case Qt::Key_Right:
-        context->emulator().ReleaseButton(ButtonType::RIGHT);
-        break;
-    case Qt::Key_Tab:
-        context->emulator().UseFastMode(false);
-        break;
-    default:
-        QMainWindow::keyReleaseEvent(event);
-        break;
-    }
+
+    const auto& controls = AppSettings::instance.controls;
+    const int key = event->key();
+
+    if (key == controls.key_left) context->emulator().ReleaseButton(ButtonType::LEFT);
+    else if (key == controls.key_right) context->emulator().ReleaseButton(ButtonType::RIGHT);
+    else if (key == controls.key_center) context->emulator().ReleaseButton(ButtonType::CENTER);
+    else if (key == controls.key_speedup) context->emulator().UseFastMode(false);
+    else QMainWindow::keyReleaseEvent(event);
 }
 
 void QtWindowSystem::closeEvent(QCloseEvent* event)
