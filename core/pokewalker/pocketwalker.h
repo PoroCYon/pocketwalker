@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <memory>
 
@@ -31,6 +32,7 @@ public:
     void SetWatts(uint16_t value);
     void UseSyntheticSteps(bool value);
     void UseFastMode(bool value);
+    void SetPause(bool value);
 
     void OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback);
 
@@ -55,6 +57,7 @@ private:
 
     std::shared_ptr<StepSampleProvider> step_provider = nullptr;
 
-    bool is_running = false;
-    bool is_fast_mode = false;
+    std::atomic<bool> is_running = false;
+    std::atomic<bool> is_paused = false;
+    std::atomic<bool> is_fast_mode = false;
 };

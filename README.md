@@ -36,17 +36,10 @@
 ## Planned Features
 
 ### Emulation
-- Synthetic Step Accumulation
 - Watt/Step Insertion
 - Save States
 
 ### Application
-
-#### General Settings
-- Theme (Light/Dark)
-- Default ROM Path
-- Default Save Path
-- Boot on Launch
 
 #### Emulation Settings
 - Custom Palettes
@@ -59,13 +52,10 @@
 
 #### IR Settings
 - IR Communication Mode (TCP, UDP, Serial)
-- Client/Server Mode
-- Host IP
-- Port
-
+- 
 ## Building From Source
 
-To build pocketwalke from source, first clone the repository and all of its submodules.
+To build pocketwalker from source, first clone the repository and all of its submodules.
 
 ```
 git clone https://github.com/h4lfheart/pocketwalker --recursive

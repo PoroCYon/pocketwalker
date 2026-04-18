@@ -1,6 +1,7 @@
 #include "emulator_context.h"
 #include <fstream>
 #include <filesystem>
+#include "desktop/src/qt/settings/app_settings.h"
 
 EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
     : QObject(parent)
@@ -11,7 +12,7 @@ EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
     std::ifstream rom_file(rom_path, std::ios::binary);
     rom_file.read(reinterpret_cast<char*>(rom_buffer.data()), 0xC000);
 
-    emu.emplace(PocketWalker(rom_buffer));
+    emu.emplace(rom_buffer);
     loadSave();
 
     audio = std::make_unique<QtAudioSystem>();
@@ -20,8 +21,16 @@ EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
         audio->PushSample(info);
     });
 
+    const auto& ir = AppSettings::instance.ir;
+
     network_thread = std::make_unique<QThread>();
-    network = std::make_unique<QtNetworkSystem>(*emu, false, "127.0.0.1", 8081, 5);
+    network = std::make_unique<QtNetworkSystem>(
+        *emu,
+        ir.mode == IRSettings::Mode::Server,
+        QString::fromStdString(ir.host),
+        static_cast<quint16>(ir.port),
+        5
+    );
     network->moveToThread(network_thread.get());
     connect(network_thread.get(), &QThread::started, network.get(), &QtNetworkSystem::start);
     network_thread->start();

@@ -33,12 +33,24 @@ void PocketWalker::Start()
 
     auto next = std::chrono::high_resolution_clock::now();
     bool prev_fast_mode = is_fast_mode;
+    bool prev_paused = is_paused;
 
     this->is_running = true;
     while (this->is_running)
     {
-        const uint8_t cycles = soc->Cycle();
+        if (this->is_paused)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            prev_paused = true;
+            continue;
+        }
 
+        if (prev_paused)
+            next = std::chrono::high_resolution_clock::now();
+
+        prev_paused = false;
+
+        const uint8_t cycles = soc->Cycle();
         this->buzzer->Cycle(cycles);
 
         next += CYCLE_DURATION * cycles;
@@ -71,7 +83,12 @@ void PocketWalker::UseSyntheticSteps(bool value)
 
 void PocketWalker::UseFastMode(bool value)
 {
-    is_fast_mode = value;
+    this->is_fast_mode = value;
+}
+
+void PocketWalker::SetPause(bool value)
+{
+    this->is_paused = value;
 }
 
 void PocketWalker::OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback)

@@ -11,6 +11,7 @@
 
 
 #include "desktop/src/qt/dialog/general_settings_dialog.h"
+#include "desktop/src/qt/dialog/ir_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 
 QtWindowSystem::QtWindowSystem(QWidget* parent)
@@ -37,15 +38,44 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     import_save_action->setEnabled(false);
     connect(import_save_action, &QAction::triggered, this, &QtWindowSystem::importSave);
 
-    reset_action = file_menu->addAction("Reset");
-    reset_action->setEnabled(false);
-    connect(reset_action, &QAction::triggered, this, &QtWindowSystem::resetEmulator);
-
     file_menu->addSeparator();
     connect(file_menu->addAction("Exit"), &QAction::triggered, qApp, &QApplication::quit);
 
+
+    auto* system_menu = menuBar()->addMenu("System");
+
+    pause_action = system_menu->addAction("Pause");
+    pause_action->setCheckable(true);
+    pause_action->setEnabled(false);
+
+    connect(pause_action, &QAction::toggled, this, [this](bool enabled)
+    {
+        context->emulator().SetPause(enabled);
+    });
+
+    reset_action = system_menu->addAction("Reset");
+    reset_action->setEnabled(false);
+    connect(reset_action, &QAction::triggered, this, &QtWindowSystem::resetEmulator);
+
+    stop_action = system_menu->addAction("Stop");
+    stop_action->setEnabled(false);
+    connect(stop_action, &QAction::triggered, this, &QtWindowSystem::shutdownEmulator);
+
+    system_menu->addSeparator();
+
+    synthetic_steps_action = system_menu->addAction("Use Synthetic Steps");
+    synthetic_steps_action->setCheckable(true);
+    synthetic_steps_action->setChecked(false);
+    synthetic_steps_action->setEnabled(false);
+
+    connect(synthetic_steps_action, &QAction::toggled, this, [this](bool enabled)
+    {
+        context->emulator().UseSyntheticSteps(enabled);
+    });
+
     auto* settings_menu = menuBar()->addMenu("Settings");
-    connect(settings_menu->addAction("General"), &QAction::triggered, this, [this]
+    auto general_settings_action = settings_menu->addAction("General");
+    connect(general_settings_action, &QAction::triggered, this, [this]
     {
         auto* dlg = new GeneralSettingsDialog(this);
         connect(dlg, &GeneralSettingsDialog::themeChanged, this, &QtWindowSystem::applyTheme);
@@ -55,16 +85,15 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
 
     settings_menu->addAction("Emulation");
     settings_menu->addAction("Controls");
-    settings_menu->addAction("IR");
 
-    synthetic_steps_action = settings_menu->addAction("Use Synthetic Steps");
-    synthetic_steps_action->setCheckable(true);
-    synthetic_steps_action->setChecked(false);
-
-    connect(synthetic_steps_action, &QAction::toggled, this, [this](bool enabled)
+    auto ir_settings_action = settings_menu->addAction("IR");
+    connect(ir_settings_action, &QAction::triggered, this, [this]
     {
-        context->emulator().UseSyntheticSteps(enabled);
+        auto* dlg = new IRSettingsDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
     });
+
 
     display = new DisplayWidget(this);
     setCentralWidget(display);
@@ -146,7 +175,8 @@ void QtWindowSystem::resetEmulator()
     if (!context)
         return;
 
-    launchEmulator(context->romPath());
+    const std::string path = context->romPath();
+    launchEmulator(path);
 }
 
 void QtWindowSystem::launchEmulator(const std::string& rom_path)
@@ -170,6 +200,7 @@ void QtWindowSystem::shutdownEmulator()
 
     render_timer->stop();
     display->setEmulator(nullptr);
+    display->update();
     context.reset();
     setEmulatorActionsEnabled(false);
     setWindowTitle("PocketWalker");
@@ -179,6 +210,8 @@ void QtWindowSystem::setEmulatorActionsEnabled(bool enabled)
 {
     import_save_action->setEnabled(enabled);
     reset_action->setEnabled(enabled);
+    pause_action->setEnabled(enabled);
+    stop_action->setEnabled(enabled);
     synthetic_steps_action->setEnabled(enabled);
 }
 
