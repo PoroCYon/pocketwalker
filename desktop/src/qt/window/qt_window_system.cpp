@@ -57,6 +57,15 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     settings_menu->addAction("Controls");
     settings_menu->addAction("IR");
 
+    synthetic_steps_action = settings_menu->addAction("Use Synthetic Steps");
+    synthetic_steps_action->setCheckable(true);
+    synthetic_steps_action->setChecked(false);
+
+    connect(synthetic_steps_action, &QAction::toggled, this, [this](bool enabled)
+    {
+        context->emulator().UseSyntheticSteps(enabled);
+    });
+
     display = new DisplayWidget(this);
     setCentralWidget(display);
     adjustSize();
@@ -170,6 +179,7 @@ void QtWindowSystem::setEmulatorActionsEnabled(bool enabled)
 {
     import_save_action->setEnabled(enabled);
     reset_action->setEnabled(enabled);
+    synthetic_steps_action->setEnabled(enabled);
 }
 
 void QtWindowSystem::addToRecentROMs(const std::string& path)
@@ -238,13 +248,20 @@ void QtWindowSystem::keyPressEvent(QKeyEvent* event)
     }
     switch (event->key())
     {
-    case Qt::Key_Down: context->emulator().PressButton(ButtonType::CENTER);
+    case Qt::Key_Down:
+        context->emulator().PressButton(ButtonType::CENTER);
         break;
-    case Qt::Key_Left: context->emulator().PressButton(ButtonType::LEFT);
+    case Qt::Key_Left:
+        context->emulator().PressButton(ButtonType::LEFT);
         break;
-    case Qt::Key_Right: context->emulator().PressButton(ButtonType::RIGHT);
+    case Qt::Key_Right:
+        context->emulator().PressButton(ButtonType::RIGHT);
         break;
-    default: QMainWindow::keyPressEvent(event);
+    case Qt::Key_Tab:
+        context->emulator().UseFastMode(true);
+        break;
+    default:
+        QMainWindow::keyPressEvent(event);
         break;
     }
 }
@@ -258,13 +275,20 @@ void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
     }
     switch (event->key())
     {
-    case Qt::Key_Down: context->emulator().ReleaseButton(ButtonType::CENTER);
+    case Qt::Key_Down:
+        context->emulator().ReleaseButton(ButtonType::CENTER);
         break;
-    case Qt::Key_Left: context->emulator().ReleaseButton(ButtonType::LEFT);
+    case Qt::Key_Left:
+        context->emulator().ReleaseButton(ButtonType::LEFT);
         break;
-    case Qt::Key_Right: context->emulator().ReleaseButton(ButtonType::RIGHT);
+    case Qt::Key_Right:
+        context->emulator().ReleaseButton(ButtonType::RIGHT);
         break;
-    default: QMainWindow::keyReleaseEvent(event);
+    case Qt::Key_Tab:
+        context->emulator().UseFastMode(false);
+        break;
+    default:
+        QMainWindow::keyReleaseEvent(event);
         break;
     }
 }

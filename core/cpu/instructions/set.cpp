@@ -1920,6 +1920,27 @@ InstructionSet::InstructionSet() :
             });
         });
 
+    root.AddSubtable(0x7, 0xC,
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.ab()) << 4 | cpu.cH(); },
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
+        [](InstructionTable& table)
+        {
+            table.AddPattern(0x7C007, 0xFF0FF, 0x07, 0xFF, {
+                "BLD #xx:3, @ERd",
+                4,
+                {2, 0, 0, 2, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint32_t* erd = cpu.reg.Reg32(cpu.bH());
+                    const uint8_t imm = cpu.dH();
+
+                    const uint8_t value = cpu.mem->Read8(*erd);
+
+                    cpu.reg.flags.C = value & (1 << imm);
+                }
+            });
+        });
+
     root.AddSubtable(0x7, 0xD,
         [](const CPU& cpu) { return static_cast<uint32_t>(cpu.ab()) << 4 | cpu.cH(); },
         [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
@@ -1957,6 +1978,19 @@ InstructionSet::InstructionSet() :
                     const uint8_t imm = cpu.dH();
 
                     cpu.mem->Write8(*erd, cpu.mem->Read8(*erd) | (1 << imm));
+                }
+            });
+
+            table.AddPattern(0x7D007, 0xFF0FF, 0x01, 0xFF, {
+                "BNOT #xx:3, @ERd",
+                4,
+                {2, 0, 0, 2, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint32_t* erd = cpu.reg.Reg32(cpu.bH());
+                    const uint8_t imm = cpu.dH();
+
+                    cpu.mem->Write8(*erd, cpu.mem->Read8(*erd) ^ (1 << imm));
                 }
             });
 

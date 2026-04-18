@@ -6,6 +6,7 @@
 #include "core/soc/h838606.h"
 #include "core/utils/event_handler.h"
 #include "peripherals/bma150/bma150.h"
+#include "peripherals/bma150/step_sample_provider.h"
 #include "peripherals/buzzer/buzzer.h"
 #include "peripherals/m95512/m95512.h"
 #include "peripherals/ssd1854/ssd1854.h"
@@ -15,8 +16,8 @@
 enum class ButtonType
 {
     CENTER = 1 << 0,
-    LEFT   = 1 << 2,
-    RIGHT  = 1 << 4
+    LEFT = 1 << 2,
+    RIGHT = 1 << 4
 };
 
 class PocketWalker
@@ -28,6 +29,8 @@ public:
     void Stop();
 
     void SetWatts(uint16_t value);
+    void UseSyntheticSteps(bool value);
+    void UseFastMode(bool value);
 
     void OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback);
 
@@ -50,5 +53,8 @@ private:
     std::shared_ptr<SSD1854> ssd1854 = nullptr;
     std::shared_ptr<Buzzer> buzzer = nullptr;
 
-    bool is_running = false;;
+    std::shared_ptr<StepSampleProvider> step_provider = nullptr;
+
+    bool is_running = false;
+    bool is_fast_mode = false;
 };

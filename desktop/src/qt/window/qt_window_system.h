@@ -41,4 +41,5 @@ private:
     QMenu* recent_roms_menu = nullptr;
     QAction* import_save_action = nullptr;
     QAction* reset_action = nullptr;
+    QAction* synthetic_steps_action = nullptr;
 };

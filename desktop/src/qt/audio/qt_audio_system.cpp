@@ -49,7 +49,7 @@ void QtAudioSystem::PushSample(BuzzerInformation info)
         float sample = 0.0f;
 
         for (int h = 1; h <= max_harmonic; h += 2)
-            sample += std::sin(2.0f * M_PI * current_freq * static_cast<float>(h) * phase / static_cast<float>(AUDIO_SAMPLE_RATE)) / static_cast<float>(h);
+            sample += std::sin(2.0f * M_PI * static_cast<float>(h) * phase) / static_cast<float>(h);
 
         const float amplitude = info.is_full_volume
                                     ? static_cast<float>(AUDIO_BASE_AMPLITUDE)
@@ -73,7 +73,8 @@ void QtAudioSystem::PushSample(BuzzerInformation info)
         raw = std::clamp(raw, -32768.0f, 32767.0f);
     }
 
-    phase += 1.0f;
+    phase += current_freq / static_cast<float>(AUDIO_SAMPLE_RATE);
+    phase -= std::floor(phase);
 
     buffer.push_back(static_cast<int16_t>(raw));
     if (static_cast<int>(buffer.size()) >= AUDIO_FLUSH_EVERY)

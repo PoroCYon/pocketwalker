@@ -17,8 +17,11 @@ void SSD1854::Receive(uint8_t data)
 {
     if (is_data_mode)
     {
-        const uint16_t address = (page * SSD1854_TOTAL_COLUMNS * SSD1854_COLUMN_SIZE) + (column * SSD1854_COLUMN_SIZE) +
-            offset;
+        if (column >= SSD1854_TOTAL_COLUMNS)
+            return;
+
+        const uint16_t address = (page * SSD1854_TOTAL_COLUMNS * SSD1854_COLUMN_SIZE) + (column * SSD1854_COLUMN_SIZE) +offset;
+
         draw_info.vram.Write8(address, data);
 
         if (offset == 1)

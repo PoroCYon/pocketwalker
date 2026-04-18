@@ -1,10 +1,11 @@
 #include "bma150.h"
-
 #include "core/soc/defines.h"
 
-static std::array<uint16_t, 8> clock_rates = {
-    50, 100, 190, 375, 750, 1500, 3000, 3000
-};
+BMA150::BMA150()
+{
+    control1 = mem.Ptr8(BMA150_ADDR_CONTROL_1);
+    *control1 = 1;
+}
 
 void BMA150::Receive(uint8_t data)
 {
@@ -13,37 +14,52 @@ void BMA150::Receive(uint8_t data)
     case BMA150State::IDLE:
         is_reading = data & 0b10000000;
         register_index = data & 0b01111111;
+        offset = 0;
         state = BMA150State::MEMORY;
         break;
     case BMA150State::MEMORY:
         if (!is_reading)
             mem.Write8(register_index, data);
-
-        state = BMA150State::IDLE;
         break;
     }
 }
 
 uint8_t BMA150::Transmit()
 {
-    if (is_reading)
-        return mem.Read8(register_index);
+    if (!is_reading)
+        return 0xFF;
 
+    if (register_index == BMA150_ADDR_ACC_X_LSB && offset == 0 && sample_provider && sample_provider->is_enabled)
+    {
+        auto [x, y, z] = sample_provider->GetSample();
+        mem.Write8(BMA150_ADDR_ACC_X_MSB, static_cast<uint8_t>(x));
+        mem.Write8(BMA150_ADDR_ACC_Y_MSB, static_cast<uint8_t>(y));
+        mem.Write8(BMA150_ADDR_ACC_Z_MSB, static_cast<uint8_t>(z));
+    }
+
+    return mem.Read8(register_index + offset++);
+}
+
+void BMA150::Reset()
+{
     state = BMA150State::IDLE;
-    return 0xFF;
+    offset = 0;
 }
 
 void BMA150::Cycle(uint32_t cycles)
 {
-    const uint16_t clock_rate = clock_rates[mem.Read8(BMA150_ADDR_RANGE_BANDWIDTH_REG) & 0b111];
+    if (*control1 & 1) // sleep
+        return;
+
+    const uint16_t clock_rate = BMA150_CLOCK_RATES[
+        mem.Read8(BMA150_ADDR_RANGE_BW_REG) & 0b111];
 
     cycle_count += cycles;
-    if (cycle_count >= PHI_CLK / clock_rate)
-    {
-        cycle_count -= PHI_CLK / clock_rate;
+    if (cycle_count < PHI_CLK / clock_rate)
+        return;
 
-        // trigger an interrupt for "data receive"
-        OnOutputPin({BMA150_PIN_INT, true});
-        OnOutputPin({BMA150_PIN_INT, false});
-    }
+    cycle_count -= PHI_CLK / clock_rate;
+
+    OnOutputPin({BMA150_PIN_INT, true});
+    OnOutputPin({BMA150_PIN_INT, false});
 }

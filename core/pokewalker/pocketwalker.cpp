@@ -9,7 +9,11 @@ PocketWalker::PocketWalker(RomBuffer rom_buffer)
 {
     this->soc = std::make_shared<H838606>(rom_buffer);
 
+    this->step_provider = std::make_shared<StepSampleProvider>(this->soc->memory);
+
     this->bma150 = std::make_shared<BMA150>();
+    this->bma150->SetSampleProvider(this->step_provider);
+
     this->m95512 = std::make_shared<M95512>();
     this->ssd1854 = std::make_shared<SSD1854>();
     this->buzzer = std::make_shared<Buzzer>(this->soc->timer_w);
@@ -25,10 +29,10 @@ PocketWalker::PocketWalker(RomBuffer rom_buffer)
 
 void PocketWalker::Start()
 {
-
     constexpr std::chrono::duration<long long, std::nano> CYCLE_DURATION(1'000'000'000LL / PHI_CLK);
 
     auto next = std::chrono::high_resolution_clock::now();
+    bool prev_fast_mode = is_fast_mode;
 
     this->is_running = true;
     while (this->is_running)
@@ -38,7 +42,15 @@ void PocketWalker::Start()
         this->buzzer->Cycle(cycles);
 
         next += CYCLE_DURATION * cycles;
-        std::this_thread::sleep_until(next);
+
+        if (!is_fast_mode)
+        {
+            if (prev_fast_mode)
+                next = std::chrono::high_resolution_clock::now();
+            std::this_thread::sleep_until(next);
+        }
+
+        prev_fast_mode = is_fast_mode;
     }
 }
 
@@ -50,6 +62,16 @@ void PocketWalker::Stop()
 void PocketWalker::SetWatts(uint16_t value)
 {
     this->soc->memory->Write16(PW_ADDR_WATTS, value);
+}
+
+void PocketWalker::UseSyntheticSteps(bool value)
+{
+    this->step_provider->is_enabled = value;
+}
+
+void PocketWalker::UseFastMode(bool value)
+{
+    is_fast_mode = value;
 }
 
 void PocketWalker::OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback)
