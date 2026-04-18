@@ -6,15 +6,8 @@
 
 #define SCREEN_W 96
 #define SCREEN_H 64
-#define SCALE    8
-#define MARGIN   (4 * SCALE)
-
-#define LCD_PALETTE_0 0xCC
-#define LCD_PALETTE_1 0x99
-#define LCD_PALETTE_2 0x66
-#define LCD_PALETTE_3 0x33
-
-static constexpr uint8_t LCD_PALETTE[4] = {LCD_PALETTE_0, LCD_PALETTE_1, LCD_PALETTE_2, LCD_PALETTE_3};
+#define SCALE 8
+#define MARGIN (4 * SCALE)
 
 class DisplayWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {

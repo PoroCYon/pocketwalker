@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 
 #include "types/control_settings.h"
+#include "types/emulation_settings.h"
 #include "types/general_settings.h"
 #include "types/ir_settings.h"
 
@@ -18,6 +19,7 @@ public:
     void save() const;
 
     GeneralSettings general;
+    EmulationSettings emulation;
     ControlSettings controls;
     IRSettings ir;
 
@@ -32,6 +34,7 @@ inline void to_json(nlohmann::json& j, const AppSettings& s)
             {"general", s.general},
             {"ir", s.ir},
             {"controls", s.controls},
+            {"emulation", s.emulation},
     };
 }
 
@@ -40,4 +43,5 @@ inline void from_json(const nlohmann::json& j, AppSettings& s)
     if (j.contains("general")) j.at("general").get_to(s.general);
     if (j.contains("ir")) j.at("ir").get_to(s.ir);
     if (j.contains("controls")) j.at("controls").get_to(s.controls);
+    if (j.contains("emulation")) j.at("emulation").get_to(s.emulation);
 }

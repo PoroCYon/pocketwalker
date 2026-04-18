@@ -11,6 +11,7 @@
 
 
 #include "desktop/src/qt/dialog/control_settings_dialog.h"
+#include "desktop/src/qt/dialog/emulation_settings_dialog.h"
 #include "desktop/src/qt/dialog/general_settings_dialog.h"
 #include "desktop/src/qt/dialog/ir_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
@@ -84,7 +85,13 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
         dlg->exec();
     });
 
-    settings_menu->addAction("Emulation");
+    auto* emulation_settings_action = settings_menu->addAction("Emulation");
+    connect(emulation_settings_action, &QAction::triggered, this, [this]
+    {
+        auto* dlg = new EmulationSettingsDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+    });
 
     auto* controls_settings_action = settings_menu->addAction("Controls");
     connect(controls_settings_action, &QAction::triggered, this, [this]
@@ -104,7 +111,6 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
 
 
     auto* about_menu = menuBar()->addMenu("About");
-
 
     display = new DisplayWidget(this);
     setCentralWidget(display);

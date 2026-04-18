@@ -42,7 +42,6 @@
 ### Application
 
 #### Emulation Settings
-- Custom Palettes
 - Emulation Speed Multiplier
 - RTC Sync Mode
 

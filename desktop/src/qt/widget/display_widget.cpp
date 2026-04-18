@@ -1,6 +1,7 @@
 #include "display_widget.h"
 #include <cstring>
 #include <QFile>
+#include "desktop/src/qt/settings/app_settings.h"
 
 #define WIN_W (SCREEN_W * SCALE + MARGIN * 2)
 #define WIN_H (SCREEN_H * SCALE + MARGIN * 2)
@@ -80,7 +81,9 @@ void DisplayWidget::drawPixels(const uint8_t* pixels)
 
 void DisplayWidget::paintGL()
 {
-    glClearColor(LCD_PALETTE_0 / 255.0f, LCD_PALETTE_0 / 255.0f, LCD_PALETTE_0 / 255.0f, 1.0f);
+    const auto& palette = AppSettings::instance.emulation.palette;
+
+    glClearColor(palette[0].r / 255.0f, palette[0].g / 255.0f, palette[0].b / 255.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     uint8_t pixels[SCREEN_W * SCREEN_H * 4];
@@ -97,7 +100,9 @@ void DisplayWidget::paintGL()
                 const uint8_t idx = (((splash[base] >> bit) & 1) << 1) |
                     ((splash[base + 1] >> bit) & 1);
                 const int i = (y * SCREEN_W + x) * 4;
-                pixels[i] = pixels[i + 1] = pixels[i + 2] = LCD_PALETTE[idx];
+                pixels[i] = palette[idx].r;
+                pixels[i + 1] = palette[idx].g;
+                pixels[i + 2] = palette[idx].b;
                 pixels[i + 3] = 255;
             }
         }
@@ -111,9 +116,13 @@ void DisplayWidget::paintGL()
     {
         if (!was_last_frame_power_save)
         {
-            memset(pixels, LCD_PALETTE_0, sizeof(pixels));
-            for (int i = 3; i < static_cast<int>(sizeof(pixels)); i += 4)
-                pixels[i] = 255;
+            for (int i = 0; i < SCREEN_W * SCREEN_H; i++)
+            {
+                pixels[i * 4] = palette[0].r;
+                pixels[i * 4 + 1] = palette[0].g;
+                pixels[i * 4 + 2] = palette[0].b;
+                pixels[i * 4 + 3] = 255;
+            }
             drawPixels(pixels);
         }
         was_last_frame_power_save = true;
@@ -128,10 +137,12 @@ void DisplayWidget::paintGL()
             for (int x = 0; x < SCREEN_W; x++)
             {
                 const int base = SSD1854_COLUMN_SIZE * x + page_offset;
-                const uint8_t palette_index = (((draw_info->vram.Read8(base) >> bit_offset) & 1) << 1) | ((draw_info->
-                    vram.Read8(base + 1) >> bit_offset) & 1);
+                const uint8_t palette_index = (((draw_info->vram.Read8(base) >> bit_offset) & 1) << 1) |
+                    ((draw_info->vram.Read8(base + 1) >> bit_offset) & 1);
                 const int idx = (y * SCREEN_W + x) * 4;
-                pixels[idx] = pixels[idx + 1] = pixels[idx + 2] = LCD_PALETTE[palette_index];
+                pixels[idx] = palette[palette_index].r;
+                pixels[idx + 1] = palette[palette_index].g;
+                pixels[idx + 2] = palette[palette_index].b;
                 pixels[idx + 3] = 255;
             }
         }
