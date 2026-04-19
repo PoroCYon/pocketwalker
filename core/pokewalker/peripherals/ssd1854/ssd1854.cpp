@@ -42,7 +42,7 @@ void SSD1854::Receive(uint8_t data)
             state = SSD1854State::IDLE;
             break;
         case SSD1854State::SET_PAGE_OFFSET:
-            draw_info.page_offset = data / 8;
+            draw_info.page_offset = std::clamp(data / 8, 0, 14);
             state = SSD1854State::IDLE;
             break;
         }

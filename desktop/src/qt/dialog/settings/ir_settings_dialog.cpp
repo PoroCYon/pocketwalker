@@ -5,7 +5,6 @@
 #include <QDialogButtonBox>
 #include <QLabel>
 
-#include "general_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 #include "desktop/src/qt/settings/types/ir_settings.h"
 

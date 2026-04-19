@@ -6,4 +6,7 @@
     <qresource prefix="/data">
         <file alias="splash.bin">data/splash.bin</file>
     </qresource>
+    <qresource prefix="/images">
+        <file alias="logo.png">images/logo.png</file>
+    </qresource>
 </RCC>

@@ -10,10 +10,11 @@
 #include <QStyleHints>
 
 
-#include "desktop/src/qt/dialog/control_settings_dialog.h"
-#include "desktop/src/qt/dialog/emulation_settings_dialog.h"
-#include "desktop/src/qt/dialog/general_settings_dialog.h"
-#include "desktop/src/qt/dialog/ir_settings_dialog.h"
+#include "../dialog/settings/control_settings_dialog.h"
+#include "../dialog/settings/emulation_settings_dialog.h"
+#include "../dialog/settings/general_settings_dialog.h"
+#include "../dialog/settings/ir_settings_dialog.h"
+#include "desktop/src/qt/dialog/about_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 
 QtWindowSystem::QtWindowSystem(QWidget* parent)
@@ -42,7 +43,6 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
 
     file_menu->addSeparator();
     connect(file_menu->addAction("Exit"), &QAction::triggered, qApp, &QApplication::quit);
-
 
     auto* system_menu = menuBar()->addMenu("System");
 
@@ -109,8 +109,13 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
         dlg->exec();
     });
 
-
-    auto* about_menu = menuBar()->addMenu("About");
+    auto* about_menu = menuBar()->addAction("About");
+    connect(about_menu, &QAction::triggered, this, [this]
+    {
+        auto* dlg = new AboutDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+    });
 
     display = new DisplayWidget(this);
     setCentralWidget(display);
