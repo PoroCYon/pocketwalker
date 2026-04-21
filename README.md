@@ -36,7 +36,6 @@
 ## Planned Features
 
 ### Emulation
-- Watt/Step Insertion
 - Save States
 
 ### Application
@@ -46,20 +45,32 @@
 - RTC Sync Mode
 
 #### IR Settings
-- IR Communication Modes (TCP, UDP, Serial)
+- UDP IR Communication Mode
+- Serial IR Communication Mode
 
 ## Building From Source
 
-To build pocketwalker from source, first clone the repository and all of its submodules.
-
+1. Install [MSYS2](https://www.msys2.org/) and open the **MSYS2 MinGW64** terminal
+2. Update packages and reopen the terminal if prompted:
+```bash
+pacman -Syu
 ```
+3. Install git and clone the repository:
+```bash
+pacman -S git
 git clone https://github.com/h4lfheart/pocketwalker --recursive
+cd pocketwalker
 ```
-
-Then run the build script at the root of the repository. Please ensure you have a compiler installed with C++23 support.
-
+4. Install dependencies:
+```bash
+pacman -S mingw-w64-x86_64-{gcc,cmake,ninja,qt6-base,qt6-multimedia}
 ```
+5. Build:
+```bash
 ./build.sh
 ```
 
 The output binary will be located in `./release/`.
+
+> [!NOTE]
+> To build a static, self-contained executable, run `./build.sh --static` instead. This requires [vcpkg](https://vcpkg.io/) to be installed with `VCPKG_ROOT` set in your environment.

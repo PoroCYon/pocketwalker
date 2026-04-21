@@ -1,22 +1,34 @@
 cmake_minimum_required(VERSION 4.0)
+
 project(pocketwalker)
 
 set(CMAKE_CXX_STANDARD 26)
-add_subdirectory(${CMAKE_SOURCE_DIR}/../core core)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB_RECURSE SOURCES src/*.cpp src/*.h)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Multimedia)
 find_package(OpenGL REQUIRED)
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/../core core)
+
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/../external/json nlohmann)
+
+file(GLOB_RECURSE SOURCES src/*.cpp src/*.h)
 
 if(WIN32)
     set(ICON_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/app.rc")
 endif()
 
-add_executable(pocketwalker ${SOURCES} ${ICON_RESOURCE})
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(EXE_TYPE WIN32)
+endif()
+
+add_executable(pocketwalker ${EXE_TYPE} ${SOURCES} ${ICON_RESOURCE})
 
 set_target_properties(pocketwalker PROPERTIES
         AUTOMOC ON
@@ -35,7 +47,6 @@ target_include_directories(pocketwalker PRIVATE
 
 target_link_libraries(pocketwalker PRIVATE
         pocketwalker_core
-        stdc++exp
         Qt6::Core
         Qt6::Widgets
         Qt6::OpenGLWidgets
@@ -43,3 +54,7 @@ target_link_libraries(pocketwalker PRIVATE
         OpenGL::GL
         nlohmann_json::nlohmann_json
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(pocketwalker PRIVATE stdc++exp)
+endif()
