@@ -15,6 +15,8 @@
 #include "../dialog/settings/general_settings_dialog.h"
 #include "../dialog/settings/ir_settings_dialog.h"
 #include "desktop/src/qt/dialog/about_dialog.h"
+#include "../dialog/emulator/set_watts_dialog.h"
+#include "desktop/src/qt/dialog/set_session_steps_dialog.h"
 #include "desktop/src/qt/dialog/settings/audio_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 
@@ -66,6 +68,32 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
 
     system_menu->addSeparator();
 
+    set_watts_action = system_menu->addAction("Set Watts");
+    set_watts_action->setEnabled(false);
+
+    connect(set_watts_action, &QAction::triggered, this, [this]
+    {
+        auto* dlg = new SetWattsDialog(this);
+        if (const auto result = dlg->exec(); result == QDialog::Accepted)
+        {
+            context->emulator().SetWatts(dlg->watts());
+        }
+    });
+
+    set_session_steps_action = system_menu->addAction("Set Session Steps");
+    set_session_steps_action->setEnabled(false);
+
+    connect(set_session_steps_action, &QAction::triggered, this, [this]
+    {
+        auto* dlg = new SetSessionStepsDialog(this);
+        if (const auto result = dlg->exec(); result == QDialog::Accepted)
+        {
+            context->emulator().SetSessionSteps(dlg->steps());
+        }
+    });
+
+    system_menu->addSeparator();
+
     synthetic_steps_action = system_menu->addAction("Use Synthetic Steps");
     synthetic_steps_action->setCheckable(true);
     synthetic_steps_action->setChecked(false);
@@ -75,6 +103,7 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     {
         context->emulator().UseSyntheticSteps(enabled);
     });
+
 
     auto* settings_menu = menuBar()->addMenu("Settings");
     auto general_settings_action = settings_menu->addAction("General");
@@ -241,6 +270,8 @@ void QtWindowSystem::resetEmulator()
 
     const std::string path = context->romPath();
     launchEmulator(path);
+
+    context->emulator().UseSyntheticSteps(synthetic_steps_action->isChecked());
 }
 
 void QtWindowSystem::launchEmulator(const std::string& rom_path, const std::string& save_path)
@@ -281,6 +312,8 @@ void QtWindowSystem::setEmulatorActionsEnabled(bool enabled)
     pause_action->setEnabled(enabled);
     stop_action->setEnabled(enabled);
     synthetic_steps_action->setEnabled(enabled);
+    set_watts_action->setEnabled(enabled);
+    set_session_steps_action->setEnabled(enabled);
 }
 
 void QtWindowSystem::addToRecentROMs(const std::string& path)

@@ -45,4 +45,6 @@ private:
     QAction* reset_action = nullptr;
     QAction* stop_action = nullptr;
     QAction* synthetic_steps_action = nullptr;
+    QAction* set_watts_action = nullptr;
+    QAction* set_session_steps_action = nullptr;
 };

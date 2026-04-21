@@ -76,6 +76,12 @@ void PocketWalker::SetWatts(uint16_t value)
     this->soc->memory->Write16(PW_ADDR_WATTS, value);
 }
 
+void PocketWalker::SetSessionSteps(uint32_t value)
+{
+    this->soc->memory->Write32(PW_ADDR_SESSION_STEPS, value);
+    this->soc->memory->Write32(PW_ADDR_TOTAL_STEPS, value);
+}
+
 void PocketWalker::UseSyntheticSteps(bool value)
 {
     this->step_provider->is_enabled = value;

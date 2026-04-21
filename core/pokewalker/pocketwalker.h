@@ -13,6 +13,8 @@
 #include "peripherals/ssd1854/ssd1854.h"
 
 #define PW_ADDR_WATTS 0xF78E
+#define PW_ADDR_SESSION_STEPS 0xF79C
+#define PW_ADDR_TOTAL_STEPS 0xF780
 
 enum class ButtonType
 {
@@ -24,12 +26,14 @@ enum class ButtonType
 class PocketWalker
 {
 public:
-    PocketWalker(RomBuffer rom_buffer);
+    explicit PocketWalker(RomBuffer rom_buffer);
 
     void Start();
     void Stop();
 
     void SetWatts(uint16_t value);
+    void SetSessionSteps(uint32_t value);
+
     void UseSyntheticSteps(bool value);
     void UseFastMode(bool value);
     void SetPause(bool value);
