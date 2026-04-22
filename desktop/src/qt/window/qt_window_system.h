@@ -3,6 +3,8 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QTimer>
+
+#include "desktop/src/qt/application_args.h"
 #include "desktop/src/qt/widget/display_widget.h"
 #include "desktop/src/qt/emulator/emulator_context.h"
 
@@ -13,7 +15,7 @@ class QtWindowSystem : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit QtWindowSystem(QWidget* parent = nullptr);
+    explicit QtWindowSystem(ApplicationArguments args, QWidget* parent = nullptr);
     ~QtWindowSystem() override;
 
 protected:
@@ -34,6 +36,8 @@ private:
     void updateRecentROMsMenu();
     void setEmulatorActionsEnabled(bool enabled);
     void applyTheme();
+
+    ApplicationArguments args;
 
     std::unique_ptr<EmulatorContext> context;
     DisplayWidget* display = nullptr;

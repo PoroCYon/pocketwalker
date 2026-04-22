@@ -20,8 +20,8 @@
 #include "desktop/src/qt/dialog/settings/audio_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 
-QtWindowSystem::QtWindowSystem(QWidget* parent)
-    : QMainWindow(parent)
+QtWindowSystem::QtWindowSystem(ApplicationArguments args, QWidget* parent)
+    : QMainWindow(parent), args(args)
 {
     setWindowTitle("PocketWalker");
     menuBar()->setNativeMenuBar(true);
@@ -104,7 +104,6 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
         context->emulator().UseSyntheticSteps(enabled);
     });
 
-
     auto* settings_menu = menuBar()->addMenu("Settings");
     auto general_settings_action = settings_menu->addAction("General");
     connect(general_settings_action, &QAction::triggered, this, [this]
@@ -165,34 +164,28 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
 
     applyTheme();
 
-    const QStringList args = QCoreApplication::arguments();
-    const auto arg_count = args.size() - 1;
-
-    if (arg_count >= 1)
+    if (args.rom_path.has_value())
     {
-        const QFileInfo rom_file(args.at(1));
+        const QFileInfo rom_file(QString::fromStdString(*args.rom_path));
         if (!rom_file.exists() || !rom_file.isFile())
         {
-            Log::Warn("Invalid ROM path: {}", args.at(1).toStdString());
+            Log::Warn("Invalid ROM path: {}", *args.rom_path);
             return;
         }
 
-        const std::string rom_path = rom_file.absoluteFilePath().toStdString();
-
         std::string save_path;
-        if (arg_count >= 2)
+        if (args.save_path)
         {
-            const QFileInfo save_file(args.at(2));
+            const QFileInfo save_file(QString::fromStdString(*args.save_path));
             if (!save_file.exists())
             {
-                Log::Warn("Invalid save path: {}", args.at(2).toStdString());
+                Log::Warn("Invalid save path: {}", *args.save_path);
                 return;
             }
-
             save_path = save_file.absoluteFilePath().toStdString();
         }
 
-        launchEmulator(rom_path, save_path);
+        launchEmulator(rom_file.absoluteFilePath().toStdString(), save_path);
     }
     else
     {
@@ -200,7 +193,6 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
         if (general.boot_on_launch && !general.default_rom.empty())
             launchEmulator(general.default_rom);
     }
-
 }
 
 QtWindowSystem::~QtWindowSystem()
@@ -280,9 +272,9 @@ void QtWindowSystem::launchEmulator(const std::string& rom_path, const std::stri
     addToRecentROMs(rom_path);
 
     if (save_path.empty())
-        context = std::make_unique<EmulatorContext>(rom_path, this);
+        context = std::make_unique<EmulatorContext>(rom_path, args, this);
     else
-        context = std::make_unique<EmulatorContext>(rom_path, save_path, this);
+        context = std::make_unique<EmulatorContext>(rom_path, save_path, args, this);
 
     display->setEmulator(&context->emulator());
     setEmulatorActionsEnabled(true);

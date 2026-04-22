@@ -17,6 +17,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/../core core)
 
 set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/../external/json nlohmann)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../external/argparse argparse)
 
 file(GLOB_RECURSE SOURCES src/*.cpp src/*.h)
 

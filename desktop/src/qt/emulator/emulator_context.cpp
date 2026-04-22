@@ -3,7 +3,8 @@
 #include <filesystem>
 #include "desktop/src/qt/settings/app_settings.h"
 
-EmulatorContext::EmulatorContext(const std::string& rom_path, const std::string& save_path, QObject* parent)
+EmulatorContext::EmulatorContext(const std::string& rom_path, const std::string& save_path,
+                                 const ApplicationArguments& args, QObject* parent)
     : QObject(parent), rom_path(rom_path)
 {
     this->save_path = save_path;
@@ -22,15 +23,12 @@ EmulatorContext::EmulatorContext(const std::string& rom_path, const std::string&
     });
 
     const auto& ir = AppSettings::instance.ir;
+    const bool server_mode = args.server_mode.value_or(ir.mode == IRSettings::Mode::Server);
+    const QString host = QString::fromStdString(args.host.value_or(ir.host));
+    const quint16 port = args.port.value_or(ir.port);
 
     network_thread = std::make_unique<QThread>();
-    network = std::make_unique<QtNetworkSystem>(
-        *emu,
-        ir.mode == IRSettings::Mode::Server,
-        QString::fromStdString(ir.host),
-        static_cast<quint16>(ir.port),
-        5
-    );
+    network = std::make_unique<QtNetworkSystem>(*emu, server_mode, host, port, 5);
     network->moveToThread(network_thread.get());
     connect(network_thread.get(), &QThread::started, network.get(), &QtNetworkSystem::start);
     network_thread->start();
@@ -38,8 +36,8 @@ EmulatorContext::EmulatorContext(const std::string& rom_path, const std::string&
     emulator_thread = std::make_unique<std::thread>([this] { emu->Start(); });
 }
 
-EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
-    : EmulatorContext(path, path.substr(0, path.find_last_of('.')) + ".sav", parent)
+EmulatorContext::EmulatorContext(const std::string& path, const ApplicationArguments& args, QObject* parent)
+    : EmulatorContext(path, path.substr(0, path.find_last_of('.')) + ".sav", args, parent)
 {
 
 }

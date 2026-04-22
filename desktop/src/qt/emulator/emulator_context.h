@@ -9,14 +9,17 @@
 #include "core/pokewalker/pocketwalker.h"
 #include "desktop/src/qt/audio/qt_audio_system.h"
 #include "desktop/src/qt/network/qt_network_system.h"
+#include "desktop/src/qt/application_args.h"
 
 class EmulatorContext : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit EmulatorContext(const std::string& rom_path, const std::string& save_path, QObject* parent = nullptr);
-    explicit EmulatorContext(const std::string& rom_path, QObject* parent = nullptr);
+    explicit EmulatorContext(const std::string& rom_path, const std::string& save_path,
+                             const ApplicationArguments& args = {}, QObject* parent = nullptr);
+    explicit EmulatorContext(const std::string& rom_path,
+                             const ApplicationArguments& args = {}, QObject* parent = nullptr);
     ~EmulatorContext() override;
 
     PocketWalker& emulator() { return *emu; }
