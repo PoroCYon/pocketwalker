@@ -18,6 +18,8 @@ struct EmulationSettings
             {0x33, 0x33, 0x33}
         }
     };
+
+    bool bypass_power_save = false;
 };
 
 inline void to_json(nlohmann::json& j, const EmulationSettings::Color& c)
@@ -34,11 +36,16 @@ inline void from_json(const nlohmann::json& j, EmulationSettings::Color& c)
 
 inline void to_json(nlohmann::json& j, const EmulationSettings& s)
 {
-    j = nlohmann::json{{"palette", s.palette}};
+    j = nlohmann::json{
+        {"palette", s.palette},
+        {"bypass_power_save", s.bypass_power_save}
+    };
 }
 
 inline void from_json(const nlohmann::json& j, EmulationSettings& s)
 {
     if (j.contains("palette") && j["palette"].is_array() && j["palette"].size() == 4)
         s.palette = j["palette"].get<std::array<EmulationSettings::Color, 4>>();
+
+    s.bypass_power_save = j.value("bypass_power_save", false);
 }

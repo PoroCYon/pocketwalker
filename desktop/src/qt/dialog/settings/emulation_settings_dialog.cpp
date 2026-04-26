@@ -1,4 +1,6 @@
 #include "emulation_settings_dialog.h"
+
+#include <QCheckBox>
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -16,6 +18,20 @@ EmulationSettingsDialog::EmulationSettingsDialog(QWidget* parent)
 {
     setWindowTitle("Emulation Settings");
     setMinimumWidth(300);
+
+    auto& emulation = AppSettings::instance.emulation;
+
+
+    auto* enhancements_group = new QGroupBox("Enhancements", this);
+
+    auto* enhancements_form = new QFormLayout();
+
+    bypass_power_save_check = new QCheckBox("Bypass Power Save Mode", this);
+    bypass_power_save_check->setChecked(emulation.bypass_power_save);
+
+    enhancements_form->addRow(bypass_power_save_check);
+
+    enhancements_group->setLayout(enhancements_form);
 
     pending_palette = AppSettings::instance.emulation.palette;
 
@@ -44,6 +60,7 @@ EmulationSettingsDialog::EmulationSettingsDialog(QWidget* parent)
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
     auto* layout = new QVBoxLayout(this);
+    layout->addWidget(enhancements_group);
     layout->addWidget(palette_group);
     layout->addWidget(buttons);
 
@@ -101,7 +118,11 @@ void EmulationSettingsDialog::reset()
 
 void EmulationSettingsDialog::apply()
 {
-    AppSettings::instance.emulation.palette = pending_palette;
+    auto& emulation = AppSettings::instance.emulation;
+    emulation.palette = pending_palette;
+    emulation.bypass_power_save = bypass_power_save_check->isChecked();
+
     emit paletteChanged();
+    emit bypassPowerSaveChanged();
     accept();
 }

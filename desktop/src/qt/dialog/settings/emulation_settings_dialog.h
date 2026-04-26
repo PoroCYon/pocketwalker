@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <QCheckBox>
 #include <QDialog>
 #include <QPushButton>
 #include "desktop/src/qt/settings/types/emulation_settings.h"
@@ -13,6 +14,7 @@ public:
 
 signals:
     void paletteChanged();
+    void bypassPowerSaveChanged();
 
 private slots:
     void apply();
@@ -24,4 +26,6 @@ private:
 
     std::array<QPushButton*, 4> swatches;
     std::array<EmulationSettings::Color, 4> pending_palette;
+
+    QCheckBox* bypass_power_save_check;
 };

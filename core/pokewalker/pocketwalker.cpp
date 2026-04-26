@@ -9,22 +9,24 @@ PocketWalker::PocketWalker(RomBuffer rom_buffer)
 {
     this->soc = std::make_shared<H838606>(rom_buffer);
 
-    this->step_provider = std::make_shared<StepSampleProvider>(this->soc->memory);
 
     this->bma150 = std::make_shared<BMA150>();
-    this->bma150->SetSampleProvider(this->step_provider);
-
-    this->m95512 = std::make_shared<M95512>();
-    this->ssd1854 = std::make_shared<SSD1854>();
-    this->buzzer = std::make_shared<Buzzer>(this->soc->timer_w);
-
     this->soc->ssu->RegisterPeripheral(this->bma150, SSU_ADDR_PDR9, 0);
     this->soc->ssu->RegisterOutputPin(this->bma150, BMA150_PIN_INT, SSU_ADDR_PDRB, 1);
 
+    this->step_provider = std::make_shared<StepSampleProvider>(this->soc->memory);
+    this->bma150->SetSampleProvider(this->step_provider);
+
+    this->m95512 = std::make_shared<M95512>();
     this->soc->ssu->RegisterPeripheral(this->m95512, SSU_ADDR_PDR1, 2);
 
+    this->ssd1854 = std::make_shared<SSD1854>();
     this->soc->ssu->RegisterPeripheral(this->ssd1854, SSU_ADDR_PDR1, 0);
     this->soc->ssu->RegisterInputPin(this->ssd1854, SSU_ADDR_PDR1, 1, SSD1854_PIN_DC);
+
+    this->buzzer = std::make_shared<Buzzer>(this->soc->timer_w);
+
+    this->activity_timer_bypass = std::make_shared<ActivityTimerBypass>(this->soc->memory);
 }
 
 void PocketWalker::Start()
@@ -51,7 +53,8 @@ void PocketWalker::Start()
         prev_paused = false;
 
         const uint8_t cycles = soc->Cycle();
-        this->buzzer->Cycle(cycles);
+        CyclePeripherals(cycles);
+        CycleEnhancements(cycles);
 
         next += CYCLE_DURATION * cycles;
 
@@ -90,6 +93,11 @@ void PocketWalker::UseSyntheticSteps(bool value)
 void PocketWalker::UseFastMode(bool value)
 {
     this->is_fast_mode = value;
+}
+
+void PocketWalker::SetBypassPowerSave(bool value)
+{
+    this->bypass_power_save = value;
 }
 
 void PocketWalker::SetPause(bool value)
@@ -137,4 +145,15 @@ EepromBuffer PocketWalker::GetEepromBuffer() const
 void PocketWalker::SetEepromBuffer(const EepromBuffer& buffer) const
 {
     m95512->eeprom = buffer;
+}
+
+void PocketWalker::CyclePeripherals(uint8_t cycles) const
+{
+    this->buzzer->Cycle(cycles);
+}
+
+void PocketWalker::CycleEnhancements(uint8_t cycles) const
+{
+    if (bypass_power_save)
+        this->activity_timer_bypass->Cycle(cycles);
 }
