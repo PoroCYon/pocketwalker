@@ -389,6 +389,11 @@ void QtWindowSystem::keyPressEvent(QKeyEvent* event)
     else if (key == controls.key_right) context->emulator().PressButton(ButtonType::RIGHT);
     else if (key == controls.key_center) context->emulator().PressButton(ButtonType::CENTER);
     else if (key == controls.key_speedup) context->emulator().UseFastMode(true);
+    else if (key == controls.key_synthetic_steps_hold)
+    {
+        context->emulator().UseSyntheticSteps(true);
+        synthetic_steps_action->setChecked(true);
+    }
     else QMainWindow::keyPressEvent(event);
 }
 
@@ -407,6 +412,11 @@ void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
     else if (key == controls.key_right) context->emulator().ReleaseButton(ButtonType::RIGHT);
     else if (key == controls.key_center) context->emulator().ReleaseButton(ButtonType::CENTER);
     else if (key == controls.key_speedup) context->emulator().UseFastMode(false);
+    else if (key == controls.key_synthetic_steps_hold)
+    {
+        context->emulator().UseSyntheticSteps(false);
+        synthetic_steps_action->setChecked(false);
+    }
     else QMainWindow::keyReleaseEvent(event);
 }
 

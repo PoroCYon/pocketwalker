@@ -17,4 +17,5 @@ private:
     KeyBindButton* right_button;
     KeyBindButton* center_button;
     KeyBindButton* speedup_button;
+    KeyBindButton* synthetic_steps_button;
 };
