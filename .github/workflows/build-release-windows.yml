@@ -1,9 +1,13 @@
-name: build-release
+name: build-release-windows
 
 on:
   push:
     tags:
       - '*'
+
+concurrency:
+  group: build-release-windows
+  cancel-in-progress: false
 
 jobs:
   build-windows:
@@ -59,12 +63,6 @@ jobs:
         with:
           name: pocketwalker-windows-x86_64
           path: desktop/build/release/release/pocketwalker.exe
-
-      - name: Save vcpkg cache
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ github.workspace }}/vcpkg_cache
-          key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

@@ -1,4 +1,4 @@
-name: build-windows
+name: build-commit-windows
 
 on:
   push:
@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: build-commit-windows
+  cancel-in-progress: false
 
 jobs:
   build-windows:
