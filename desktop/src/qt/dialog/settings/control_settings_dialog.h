@@ -1,6 +1,6 @@
 #pragma once
 #include <QDialog>
-#include "desktop/src/qt/widget/key_bind_button.h"
+#include "../../widget/keybind/key_bind_button.h"
 
 class ControlSettingsDialog : public QDialog
 {

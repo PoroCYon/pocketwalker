@@ -3,6 +3,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QDialogButtonBox>
+#include <QLabel>
 
 #include "desktop/src/qt/settings/app_settings.h"
 #include "desktop/src/qt/settings/types/control_settings.h"
@@ -43,11 +44,14 @@ ControlSettingsDialog::ControlSettingsDialog(QWidget* parent)
     auto* extra_controls_group = new QGroupBox("Extra Keys", this);
     extra_controls_group->setLayout(extra_controls_form);
 
+    auto* clear_text = new QLabel("Note: To clear a keybind, press delete or backspace.");
+
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(main_controls_group);
     layout->addWidget(extra_controls_group);
+    layout->addWidget(clear_text);
     layout->addWidget(buttons);
 
     connect(buttons, &QDialogButtonBox::accepted, this, &ControlSettingsDialog::apply);

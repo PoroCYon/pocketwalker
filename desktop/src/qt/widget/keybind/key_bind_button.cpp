@@ -1,4 +1,6 @@
 #include "key_bind_button.h"
+
+#include <qmenu.h>
 #include <QMouseEvent>
 
 KeyBindButton::KeyBindButton(QWidget* parent)
@@ -15,7 +17,14 @@ void KeyBindButton::setKey(int key)
 
 void KeyBindButton::mousePressEvent(QMouseEvent* event)
 {
-    Q_UNUSED(event);
+    if (event->button() == Qt::RightButton)
+    {
+        QMenu menu(this);
+        menu.addAction("Clear", this, [this]() { setKey(0); });
+        menu.exec(event->globalPosition().toPoint());
+        return;
+    }
+
     setWaiting(true);
     setFocus();
 }
@@ -32,6 +41,13 @@ void KeyBindButton::keyPressEvent(QKeyEvent* event)
 
     if (key == Qt::Key_Escape)
     {
+        setWaiting(false);
+        return;
+    }
+
+    if (key == Qt::Key_Delete || key == Qt::Key_Backspace)
+    {
+        current_key = 0;
         setWaiting(false);
         return;
     }
