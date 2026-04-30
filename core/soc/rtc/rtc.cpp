@@ -1,7 +1,10 @@
+#define __STDC_WANT_LIB_EXT1__ 1
+
 #include "rtc.h"
 
 #include <chrono>
 #include <cmath>
+#include <ctime>
 
 #include "core/soc/defines.h"
 
@@ -48,7 +51,13 @@ void RTC::Cycle(uint8_t cycles)
 
         const time_t now = std::time(nullptr);
         std::tm current_time = {};
+#ifdef _WIN32  /* windows does something standard-non-compliant here... */
         localtime_s(&current_time, &now);
+#elif defined(__STDC_LIB_EXT1__)
+        localtime_s(&now, &current_time);
+#else
+        localtime_r(&now, &current_time);
+#endif
 
         RSECDR = BCD(current_time.tm_sec);
         RMINDR = BCD(current_time.tm_min);

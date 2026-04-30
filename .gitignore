@@ -1,10 +1,10 @@
 # CLion
-.idea
+.idea/
 
 # Build
-build
-release
+build/
+release/
 
 # Personal
-roms
+roms/
 docs
